@@ -50,6 +50,7 @@
     <args4j.version>2.0.18</args4j.version>
     <htmlunit.version>2.9</htmlunit.version>
     <derby.version>10.8.2.2</derby.version>
+    <findbugs.version>2.4.0</findbugs.version>
   </properties>
 
   <dependencies>
@@ -116,7 +117,7 @@
           <tarLongFileMode>warn</tarLongFileMode>
           <archive>
             <manifest>
-              <mainClass>net.wagstrom.research.github.Github</mainClass>
+              <mainClass>net.wagstrom.research.github.language.GitHubLanguageMinerMain</mainClass>
               <!-- <mainClass>edu.unl.cse.git.App</mainClass> -->
             </manifest>
           </archive>
@@ -130,6 +131,19 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>${findbugs.version}</version>
+        <configuration>
+          <findbugsXmlOutput>true</findbugsXmlOutput>
+          <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+          <xmlOutput>true</xmlOutput>
+          <effort>Max</effort>
+          <threshold>Low</threshold>
+        </configuration>
+      </plugin>
+ 
     </plugins>
   </build>
 </project>
