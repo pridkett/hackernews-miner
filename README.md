@@ -12,6 +12,8 @@ usage
 configuration settings
 ----------------------
 
+NOTE: this is probably out of date...
+
 * net.wagstrom.research.github.language.db: URL of the derby database
 where results should be saved
 * net.wagstrom.research.github.language.delay: amount of time in seconds
@@ -19,6 +21,8 @@ between fetching subsequent pages
 
 database schema
 ---------------
+
+NOTE: this is probably out of date...
 
 I've tried to keep this as simple as possible while still creating a
 robust system for data analysis.
