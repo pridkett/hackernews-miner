@@ -23,23 +23,30 @@ public class DatabaseDriver {
     
     private static final String DERBY_TABLE_EXISTS = "X0Y32";
     
-    private static final String UPDATE_TABLE = "CREATE TABLE GITHUBUPDATE (id int primary key generated always as identity," +
+    private static final String UPDATE_TABLE = "CREATE TABLE githubupdate" +
+    		"(id int primary key generated always as identity," +
     		"create_date timestamp not null default CURRENT_TIMESTAMP)";
-    private static final String LANGUAGE_TABLE = "CREATE TABLE LANGUAGE (id int primary key generated always as identity," +
+    private static final String LANGUAGE_TABLE = "CREATE TABLE proglang" +
+    		"(id int primary key generated always as identity," +
     		"name varchar(64), create_date timestamp not null default CURRENT_TIMESTAMP)";
-    private static final String REPOSITORY_TABLE = "CREATE TABLE REPOSITORY (id int primary key generated always as identity," +
-    		"username varchar(64), reponame varchar(64), create_date timestamp not null default CURRENT_TIMESTAMP)";
-    private static final String TOP_CATEGORY_TABLE = "CREATE TABLE TOPCATEGORY (id int primary key generated always as identity," +
+    private static final String REPOSITORY_TABLE = "CREATE TABLE repo" +
+    		"(id int primary key generated always as identity," +
+    		"username varchar(64), reponame varchar(64)," +
+    		"create_date timestamp not null default CURRENT_TIMESTAMP)";
+    private static final String TOP_CATEGORY_TABLE = "CREATE TABLE topcategory" +
+    		"(id int primary key generated always as identity," +
     		"name varchar(64), create_date timestamp not null default CURRENT_TIMESTAMP)";
-    private static final String PROJECT_UPDATE_TABLE = "CREATE TABLE PROJECTUPDATE(id int primary key generated always as identity," +
+    private static final String PROJECT_UPDATE_TABLE = "CREATE TABLE repoupdate " +
+    		"(id int primary key generated always as identity," +
     		"update_id int not null constraint projectupdate_githubupdate_fk references GITHUBUPDATE(id)," +
-    		"language_id int not null constraint projectudpate_language_fk references LANGUAGE(id)," +
-    		"repository_id int not null constraint projectupdate_repository_fk references REPOSITORY(id)," +
+    		"proglang_id int not null constraint projectudpate_language_fk references PROGLANG(id)," +
+    		"repo_id int not null constraint projectupdate_repository_fk references REPO(id)," +
     		"category_id int not null constraint projectupdate_topcategory_fk references TOPCATEGORY(id)," +
     		"rank int)";
-    private static final String LANGUAGE_UPDATE = "CREATE TABLE languageupdate(id int primary key generated always as identity," +
+    private static final String LANGUAGE_UPDATE = "CREATE TABLE languageupdate" +
+    		"(id int primary key generated always as identity," +
             "update_id int not null constraint languageupdate_githubupdate_fk references GITHUBUPDATE(id)," +
-    		"language_id int not null constraint languageupdate_language_fk references LANGUAGE(id)," +
+    		"proglang_id int not null constraint languageupdate_language_fk references PROGLANG(id)," +
     		"num_projects int not null," +
     		"rank int not null)";
     
@@ -59,16 +66,6 @@ public class DatabaseDriver {
             connect = DriverManager
                     .getConnection(props.getProperty(PropNames.JDBC_URL, Defaults.JDBC_URL));
             createTables();
-//            PreparedStatement statement = connect
-//                    .prepareStatement("SELECT * from USERS");
-//
-//            resultSet = statement.executeQuery();
-//            while (resultSet.next()) {
-//                String user = resultSet.getString("name");
-//                String number = resultSet.getString("number");
-//                System.out.println("User: " + user);
-//                System.out.println("ID: " + number);
-//            }
         } catch (Exception e) {
             logger.error("Exception caught: ", e);
         }
@@ -115,7 +112,7 @@ public class DatabaseDriver {
     private int getLanguage(String language) {
         int rv = -1;
         try {
-            PreparedStatement statement = connect.prepareStatement("SELECT id FROM language WHERE name=?");
+            PreparedStatement statement = connect.prepareStatement("SELECT id FROM proglang WHERE name=?");
             statement.setString(1, language);
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
@@ -132,7 +129,7 @@ public class DatabaseDriver {
     
     private int createLanguage(String language) {
         try {
-            PreparedStatement statement = connect.prepareStatement("INSERT INTO language (name) values (?)", Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement statement = connect.prepareStatement("INSERT INTO proglang (name) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
             statement.setString(1, language);
             statement.execute();
             ResultSet rs = statement.getGeneratedKeys();
@@ -165,7 +162,7 @@ public class DatabaseDriver {
 
     private int createCategory(String categoryName) {
         try {
-            PreparedStatement statement = connect.prepareStatement("INSERT INTO topcategory (name) values (?)", Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement statement = connect.prepareStatement("INSERT INTO topcategory (name) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
             statement.setString(1, categoryName);
             statement.execute();
             ResultSet rs = statement.getGeneratedKeys();
@@ -184,7 +181,7 @@ public class DatabaseDriver {
     private int getCategory(String categoryName) {
         if (categoryMap.containsKey(categoryName)) { return categoryMap.get(categoryName); }
         try {
-            PreparedStatement statement = connect.prepareStatement("SELECT id FROM topcategory WHERE NAME=?");
+            PreparedStatement statement = connect.prepareStatement("SELECT id FROM topcategory WHERE name=?");
             statement.setString(1, categoryName);
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
@@ -203,7 +200,7 @@ public class DatabaseDriver {
     
     private int createRepository(String username, String reponame) {
         try {
-            PreparedStatement statement = connect.prepareStatement("INSERT INTO repository (username, reponame) values (?, ?)", Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement statement = connect.prepareStatement("INSERT INTO repo (username, reponame) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
             statement.setString(1, username);
             statement.setString(2, reponame);
             statement.execute();
@@ -235,7 +232,7 @@ public class DatabaseDriver {
             return repositoryMap.get(username + "/" + reponame);
         }
         try {
-            PreparedStatement statement = connect.prepareStatement("SELECT id FROM repository WHERE username=? and reponame=?");
+            PreparedStatement statement = connect.prepareStatement("SELECT id FROM repo WHERE username=? AND reponame=?");
             statement.setString(1, username);
             statement.setString(2, reponame);
             ResultSet rs = statement.executeQuery();
@@ -257,7 +254,7 @@ public class DatabaseDriver {
         int category_id = getCategory(categoryName);
         int ctr = 1;
         try {
-            PreparedStatement statement = connect.prepareStatement("INSERT INTO PROJECTUPDATE(update_id, language_id, repository_id, category_id, rank) values (?, ?, ?, ?, ?)");
+            PreparedStatement statement = connect.prepareStatement("INSERT INTO repoupdate(update_id, proglang_id, repo_id, category_id, rank) VALUES (?, ?, ?, ?, ?)");
             for (String s : repositories) {
                 int repository_id = getRepository(s);
                 statement.setInt(1, update_id);
@@ -274,14 +271,14 @@ public class DatabaseDriver {
 
     private void saveLanguageUpdate(int update_id, int language_id, int num_projects, int rank) {
         try {
-            PreparedStatement statement = connect.prepareStatement("INSERT INTO languageupdate(update_id, language_id, num_projects, rank) VALUES (?, ?, ?, ?)");
+            PreparedStatement statement = connect.prepareStatement("INSERT INTO languageupdate(update_id, proglang_id, num_projects, rank) VALUES (?, ?, ?, ?)");
             statement.setInt(1, update_id);
             statement.setInt(2, language_id);
             statement.setInt(3, num_projects);
             statement.setInt(4, rank);
             statement.execute();
         } catch (SQLException e) {
-            logger.error("SQL exception saving language update language: {}, update: {}, num_projects: {}, rank: {}", new Object[]{language_id, update_id, num_projects, rank, e});
+            logger.error("SQL exception saving language update proglang: {}, update: {}, num_projects: {}, rank: {}", new Object[]{language_id, update_id, num_projects, rank, e});
         }
     }
     

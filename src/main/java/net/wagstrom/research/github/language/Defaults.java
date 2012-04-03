@@ -28,7 +28,7 @@ public class Defaults {
     public static final String MOST_WATCHED_OVERALL = "Most Watched Overall";
     public static final String MOST_FORKED_OVERALL = "Most Forked Overall";
     
-    public static final String MOST_WATCHED_DEPTH = "5";
+    public static final String MOST_WATCHED_DEPTH = "10";
     public static final String MOST_WATCHED = "Most Watched";
     
     public static final String JDBC_URL = "jdbc:derby:dbTest;create=true";
