@@ -37,7 +37,7 @@ public class GitHubLanguageMinerProperties {
      * 
      * @return a {java.util.Propeties} reference
      */
-    public static Properties props() {
+    public synchronized static Properties props() {
         if (_githubProperties != null) return _githubProperties;
         _githubProperties = new Properties();
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
@@ -59,7 +59,7 @@ public class GitHubLanguageMinerProperties {
      * @param filename
      * @return
      */
-    public static Properties props(String filename) {
+    public synchronized static Properties props(String filename) {
         if (_githubProperties != null) return _githubProperties;
         _githubProperties = new Properties();
         try {

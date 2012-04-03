@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -82,8 +83,8 @@ public class DatabaseDriver {
             if (connect != null) {
                 connect.close();
             }
-        } catch (Exception e) {
-            // do nothing
+        } catch (SQLException e) {
+            logger.error("SQLException caught closing database: ", e);
         }
     }
     
@@ -98,8 +99,9 @@ public class DatabaseDriver {
     
     private void createTable(String tableString) {
         try {
-            PreparedStatement statement = connect.prepareStatement(tableString);
-            statement.execute();
+            Statement statement = connect.createStatement();
+            statement.execute(tableString);
+            statement.close();
         } catch (SQLException e) {
             if (e.getSQLState().equals(DERBY_TABLE_EXISTS)) {
                 logger.info("Table already exists:\n{}", tableString);
@@ -118,8 +120,11 @@ public class DatabaseDriver {
             while (rs.next()) {
                 rv = rs.getInt("id");
                 rs.close();
+                statement.close();
                 return rv;
             }
+            rs.close();
+            statement.close();
             return createLanguage(language);
         } catch (SQLException e) {
             logger.error("SQL exception getting language: {}", language, e);
@@ -136,6 +141,7 @@ public class DatabaseDriver {
             while (rs.next()) {
                 int rv = rs.getInt(1);
                 rs.close();
+                statement.close();
                 return rv;
             }
         } catch (SQLException e) {
@@ -151,9 +157,13 @@ public class DatabaseDriver {
                     Statement.RETURN_GENERATED_KEYS);
             ResultSet rs = statement.getGeneratedKeys();
             while (rs.next()) {
-                logger.info("generated key: {}", rs.getInt(1));
-                return rs.getInt(1);
+                int rv = rs.getInt(1);
+                rs.close();
+                statement.close();
+                return rv;
             }
+            rs.close();
+            statement.close();
         } catch (SQLException e) {
             logger.error("SQL exception creating githubupdate:",e);
         }
@@ -170,8 +180,11 @@ public class DatabaseDriver {
                 int rv = rs.getInt(1);
                 rs.close();
                 categoryMap.put(categoryName, rv);
+                statement.close();
                 return rv;
             }
+            rs.close();
+            statement.close();
         } catch (SQLException e) {
             logger.error("SQL exception creating category: {}", categoryName, e);
         }
@@ -187,10 +200,12 @@ public class DatabaseDriver {
             while (rs.next()) {
                 int rv = rs.getInt("id");
                 rs.close();
-                statement.close();
                 categoryMap.put(categoryName, rv);
+                statement.close();
                 return rv;
             }
+            rs.close();
+            statement.close();
             return createCategory(categoryName);
         } catch (SQLException e) {
             logger.error("SQL exception getting category: {}", categoryName, e);
@@ -209,8 +224,11 @@ public class DatabaseDriver {
                 int rv = rs.getInt(1);
                 rs.close();
                 repositoryMap.put(username + "/" + reponame, rv);
+                statement.close();
                 return rv;
             }
+            rs.close();
+            statement.close();
         } catch (SQLException e) {
             logger.error("SQL exception creating repository: {}/{}", new Object[]{username, reponame, e});
         }
@@ -239,10 +257,12 @@ public class DatabaseDriver {
             while (rs.next()) {
                 int rv = rs.getInt("id");
                 rs.close();
-                statement.close();
                 repositoryMap.put(username + "/" + reponame, rv);
+                statement.close();
                 return rv;
             }
+            rs.close();
+            statement.close();
             return createRepository(username, reponame);
         } catch (SQLException e) {
             logger.error("SQL exception getting category: {}/{}", new Object[]{username, reponame, e});
@@ -264,6 +284,7 @@ public class DatabaseDriver {
                 statement.setInt(5, ctr++);
                 statement.execute();
             }
+            statement.close();
         } catch (SQLException e) {
             logger.error("SQL exception saving top projects language: {}, category: {}", new Object[]{language_id, categoryName, e});
         }
@@ -277,6 +298,7 @@ public class DatabaseDriver {
             statement.setInt(3, num_projects);
             statement.setInt(4, rank);
             statement.execute();
+            statement.close();
         } catch (SQLException e) {
             logger.error("SQL exception saving language update proglang: {}, update: {}, num_projects: {}, rank: {}", new Object[]{language_id, update_id, num_projects, rank, e});
         }
@@ -285,9 +307,9 @@ public class DatabaseDriver {
     public void saveProjectRecords(HashMap<String, ProjectRecord> records) {
         int update_id = createGitHubUpdate();
         logger.info("update id: {}", update_id);
-        for (String language : records.keySet()) {
-            int language_id = getLanguage(language);
-            ProjectRecord record = records.get(language);
+        for (Map.Entry<String, ProjectRecord> language : records.entrySet()) {
+            int language_id = getLanguage(language.getKey());
+            ProjectRecord record = language.getValue();
             saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED, record.getMostWatchedProjects());
             saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED_TODAY, record.getMostWatchedToday());
             saveTopProjects(update_id, language_id, Defaults.MOST_FORKED_TODAY, record.getMostForkedToday());

@@ -20,6 +20,7 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,8 +56,10 @@ public class GitHubLanguageMiner {
         HashMap<String, ProjectRecord> projectRecords = new HashMap<String, ProjectRecord>();
         HashMap<String, HtmlAnchor> languageLinks = getLanguageLinks();
         httpSleep();
-        for (String language : languageLinks.keySet()) {
-            projectRecords.put(language, fetchLanguage(language, languageLinks.get(language)));
+        for (Map.Entry<String, HtmlAnchor> language : languageLinks.entrySet()) {
+            String languageName = language.getKey();
+            HtmlAnchor languageAnchor = language.getValue();
+            projectRecords.put(languageName, fetchLanguage(languageName, languageAnchor));
             httpSleep();
         }
         DatabaseDriver db = new DatabaseDriver();
