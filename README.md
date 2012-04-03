@@ -23,6 +23,22 @@ for the names of properties. The default values for those properties can be foun
 Simple Queries
 --------------
 
+By default the program uses the embedded Derby database. The easiest
+way to perform queries on it is to use the `ij` tool that ships with
+the binary distribution of Derby.
+
+This query gets the JavaScript projects marked as 'Most Watched This Week'
+obtained from the most recent update of the data:
+
+    select username, reponame, rank
+      from repo, proglang, repoupdate, topcategory
+     where repo.id=repoupdate.repo_id
+           and repoupdate.proglang_id=proglang.id
+           and proglang.name='JavaScript'
+           and repoupdate.category_id=topcategory.id
+           and topcategory.name='Most Watched This Week'
+           and repoupdate.update_id=(select max(id) from githubupdate);
+
 Database Schema
 ---------------
 
