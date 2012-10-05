@@ -34,11 +34,6 @@
         <id>wagstrom-net-external_free</id>
         <url>http://patrick.wagstrom.net/maven/external_free</url>
     </repository>
-    <repository>
-      <id>jenkins-repository</id>
-      <name>Jenkins CI Maven2 Repository</name>
-      <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
-    </repository>
   </repositories>
 
   <properties>
@@ -47,7 +42,7 @@
     <junit.version>4.10</junit.version>
     <logback.version>0.9.29</logback.version>
     <logbackAddOns.version>0.1-SNAPSHOT</logbackAddOns.version>
-    <args4j.version>2.0.18</args4j.version>
+    <args4j.version>2.0.16</args4j.version>
     <htmlunit.version>2.9</htmlunit.version>
     <derby.version>10.8.2.2</derby.version>
     <findbugs.version>2.4.0</findbugs.version>
