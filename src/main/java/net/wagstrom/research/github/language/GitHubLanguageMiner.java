@@ -31,14 +31,22 @@ import org.slf4j.LoggerFactory;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
+import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlOption;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.html.HtmlSelect;
+import com.gargoylesoftware.htmlunit.html.HtmlSubmitInput;
+import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
 
 public class GitHubLanguageMiner {
     private Logger logger = null;
     private WebClient wc;
     private Properties props;
     private Pattern rankMatch = null;
+    private Pattern numReposMatch = null;
+    private HtmlPage searchPage;
     private int httpDelay = 1000;
     
     public GitHubLanguageMiner() {
@@ -49,12 +57,21 @@ public class GitHubLanguageMiner {
         wc.setCssEnabled(false);
         props = GitHubLanguageMinerProperties.props();
         rankMatch = Pattern.compile("is the (#([0-9]+) )?most popular language on GitHub");
+        numReposMatch = Pattern.compile("Repositories \\(([0-9]+)\\)");
         httpDelay = Integer.parseInt(props.getProperty(PropNames.HTTP_DELAY, Defaults.HTTP_DELAY));
     }
 
     public void run() {
         HashMap<String, ProjectRecord> projectRecords = new HashMap<String, ProjectRecord>();
         HashMap<String, HtmlAnchor> languageLinks = getLanguageLinks();
+        
+        String searchUrl = props.getProperty(PropNames.SEARCH_URL, Defaults.SEARCH_URL);
+        try {
+            searchPage = wc.getPage(searchUrl);
+        } catch (IOException e) {
+            logger.error("Unable to fetch search page {}:", searchUrl, e);
+        }
+        
         httpSleep();
         for (Map.Entry<String, HtmlAnchor> language : languageLinks.entrySet()) {
             String languageName = language.getKey();
@@ -113,7 +130,8 @@ public class GitHubLanguageMiner {
         try {
             httpSleep();
             page = anchor.click();
-            HtmlElement el = page.getFirstByXPath("//div[@class=\"pagehead\"]/h1/em");
+            logger.trace("Page URL: {}", page.getUrl());
+            HtmlElement el = page.getFirstByXPath("//div[@class=\"pagehead\"]/descendant::h1/em");
             String textContent = el.getTextContent();
             Matcher m1 = rankMatch.matcher(textContent.trim());
             if (m1.matches()) {
@@ -138,8 +156,42 @@ public class GitHubLanguageMiner {
         } catch (IOException e) {
             logger.error("IO exception fetching {}:", name, e);
         }
-        
+        try {
+            pr.setNumProjects(searchNumProjects(name));
+        } catch (IOException e) {
+            logger.error("IO exception performing search for projects per page {}:", name, e);
+        }
         return pr;
+    }
+    
+    private int searchNumProjects(String language) throws IOException {
+        logger.info("searching for: total number projects");
+        int numProjects = 0;
+        String searchString = "language:\"" + language + "\"";
+        logger.trace("Fetching number of projects for language: {}", language);
+
+        HtmlForm form = (HtmlForm) searchPage.getElementById("search_form");
+        HtmlTextInput searchField = form.getInputByName("q");
+        HtmlButton submitButton = form.getFirstByXPath("//button[@type=\"submit\"]");
+        HtmlSelect select = form.getSelectByName("type");
+        HtmlOption option = select.getOptionByValue("Repositories");
+        select.setSelectedAttribute(option, true);
+        logger.trace("Setting search string to: {}", searchString);
+        searchField.setValueAttribute(searchString);
+        HtmlPage page2 = submitButton.click();
+        
+        httpSleep();
+        
+        HtmlElement el = page2.getFirstByXPath("//div[@class=\"header\"]/div[@class=\"title\"]");
+        logger.trace("New URI: {}", page2.getUrl());
+        String textContent = el.getTextContent();
+        logger.trace("Raw text: {}", textContent);
+        Matcher m1 = numReposMatch.matcher(textContent.trim());
+        if (m1.matches()) {
+            numProjects = Integer.parseInt(m1.group(1));
+            logger.trace("Language: {} Num Projects: {}", language, numProjects);
+        }
+        return numProjects;
     }
     
     private Collection<String> processTopLanguage(HtmlPage page, String h3Tag) {
@@ -187,7 +239,6 @@ public class GitHubLanguageMiner {
                 }
             }
         }
-        pr.setNumProjects(maxPage*Defaults.PROJECTS_PER_PAGE);
         return topProjects;
     }
 

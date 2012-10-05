@@ -17,6 +17,7 @@ package net.wagstrom.research.github.language;
 
 public class PropNames {
     public static final String BASE_URL = "net.wagstrom.research.github.language.base_url";
+    public static final String SEARCH_URL = "net.wagstrom.research.github.language.search_url";
     public static final String HTTP_DELAY = "net.wagstrom.research.github.langauge.http_delay";
     public static final String MOST_WATCHED_TODAY = "net.wagstrom.research.github.language.text.most_watched_today";
     public static final String MOST_FORKED_TODAY = "net.wagstrom.research.github.language.text.most_forked_today";

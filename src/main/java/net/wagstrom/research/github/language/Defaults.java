@@ -17,6 +17,7 @@ package net.wagstrom.research.github.language;
 
 public class Defaults {
     public static final String BASE_URL = "https://github.com/languages";
+    public static final String SEARCH_URL = "https://github.com/search";
     public static final String HTTP_DELAY = "1000";
     
     public static final String MOST_WATCHED_TODAY = "Most Watched Today";
