@@ -76,10 +76,8 @@ public class GitHubLanguageMiner {
         for (Map.Entry<String, HtmlAnchor> language : languageLinks.entrySet()) {
             String languageName = language.getKey();
             HtmlAnchor languageAnchor = language.getValue();
-            if (languageName.equals("Java")) {
-                projectRecords.put(languageName, fetchLanguage(languageName, languageAnchor));
-                httpSleep();
-            }
+            projectRecords.put(languageName, fetchLanguage(languageName, languageAnchor));
+            httpSleep();
         }
         DatabaseDriver db = new DatabaseDriver();
         db.saveProjectRecords(projectRecords);
