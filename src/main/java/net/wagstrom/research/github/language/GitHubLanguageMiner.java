@@ -76,8 +76,10 @@ public class GitHubLanguageMiner {
         for (Map.Entry<String, HtmlAnchor> language : languageLinks.entrySet()) {
             String languageName = language.getKey();
             HtmlAnchor languageAnchor = language.getValue();
-            projectRecords.put(languageName, fetchLanguage(languageName, languageAnchor));
-            httpSleep();
+            if (languageName.equals("Java")) {
+                projectRecords.put(languageName, fetchLanguage(languageName, languageAnchor));
+                httpSleep();
+            }
         }
         DatabaseDriver db = new DatabaseDriver();
         db.saveProjectRecords(projectRecords);
@@ -221,8 +223,6 @@ public class GitHubLanguageMiner {
                     httpSleep();
                     HtmlPage newPage = a.click();
                     topProjects.addAll(getMostWatchedProjectsIterator(newPage, depth-1));
-
-
                     for (Object pageLink : newPage.getByXPath("//div[@class=\"pagination\"]/a")) {
                         if (pageLink instanceof HtmlAnchor) {
                             try {
@@ -245,26 +245,29 @@ public class GitHubLanguageMiner {
     private Collection<String> getMostWatchedProjectsIterator(HtmlPage page, int depth) {
         ArrayList <String> topProjects = new ArrayList<String>();
         logger.info("depth: {}", depth);
-            for (Object el : page.getByXPath("//table[@class=\"repo\"]/tbody/tr/td[@class=\"title\"]/a")) {
-                if (el instanceof HtmlAnchor) {
-                    topProjects.add(((HtmlAnchor) el).getHrefAttribute());
-                } else {
-                    logger.warn("Warning: element is not an HtmlAnchor: {}", el);
-                }
+        
+        // unfortunately the unordered list we're looking for has multiple css
+        // classes, so this hack finds it anywhere in the string
+        for (Object el : page.getByXPath("//ul[contains(concat(' ',@class,' '),' repolist ')]/li/h3/a")) {
+            if (el instanceof HtmlAnchor) {
+                topProjects.add(((HtmlAnchor) el).getHrefAttribute());
+            } else {
+                logger.warn("Warning: element is not an HtmlAnchor: {}", el);
             }
-            if (depth > 0) {
-                HtmlAnchor nextAnchor = null;
-                try {
-                    nextAnchor = page.getFirstByXPath("//div[@class=\"pagination\"]/a[@rel=\"next\"]");
-                    if (nextAnchor != null) { 
-                        httpSleep();
-                        HtmlPage nextPage = nextAnchor.click();
-                        topProjects.addAll(getMostWatchedProjectsIterator(nextPage, depth-1));
-                    }
-                } catch (IOException e) {
-                    logger.error("IO Exception clicking link: {}", nextAnchor, e);
+        }
+        if (depth > 0) {
+            HtmlAnchor nextAnchor = null;
+            try {
+                nextAnchor = page.getFirstByXPath("//div[@class=\"pagination\"]/a[@rel=\"next\"]");
+                if (nextAnchor != null) { 
+                    httpSleep();
+                    HtmlPage nextPage = nextAnchor.click();
+                    topProjects.addAll(getMostWatchedProjectsIterator(nextPage, depth-1));
                 }
+            } catch (IOException e) {
+                logger.error("IO Exception clicking link: {}", nextAnchor, e);
             }
+        }
         return topProjects;
     }
 }
