@@ -144,14 +144,14 @@ public class GitHubLanguageMiner {
                     logger.info("language {}: rank: {}", name, rank);
                 }
             }
-//            pr.setMostWatchedToday(processTopLanguage(page, props.getProperty(PropNames.MOST_WATCHED_TODAY, Defaults.MOST_WATCHED_TODAY)));
-//            pr.setMostForkedToday(processTopLanguage(page, props.getProperty(PropNames.MOST_FORKED_TODAY, Defaults.MOST_FORKED_TODAY)));
-//            pr.setMostWatchedThisWeek(processTopLanguage(page, props.getProperty(PropNames.MOST_WATCHED_THIS_WEEK, Defaults.MOST_WATCHED_THIS_WEEK)));
-//            pr.setMostForkedThisWeek(processTopLanguage(page, props.getProperty(PropNames.MOST_FORKED_THIS_WEEK, Defaults.MOST_FORKED_THIS_WEEK)));
-//            pr.setMostWatchedThisMonth(processTopLanguage(page, props.getProperty(PropNames.MOST_WATCHED_THIS_MONTH, Defaults.MOST_WATCHED_THIS_MONTH)));
-//            pr.setMostForkedThisMonth(processTopLanguage(page, props.getProperty(PropNames.MOST_FORKED_THIS_MONTH, Defaults.MOST_FORKED_THIS_MONTH)));
-//            pr.setMostWatchedOverall(processTopLanguage(page, props.getProperty(PropNames.MOST_WATCHED_OVERALL, Defaults.MOST_WATCHED_OVERALL)));
-//            pr.setMostForkedOverall(processTopLanguage(page, props.getProperty(PropNames.MOST_FORKED_OVERALL, Defaults.MOST_FORKED_OVERALL)));
+            pr.setMostWatchedToday(processTopLanguage(page, props.getProperty(PropNames.MOST_WATCHED_TODAY, Defaults.MOST_WATCHED_TODAY)));
+            pr.setMostForkedToday(processTopLanguage(page, props.getProperty(PropNames.MOST_FORKED_TODAY, Defaults.MOST_FORKED_TODAY)));
+            pr.setMostWatchedThisWeek(processTopLanguage(page, props.getProperty(PropNames.MOST_WATCHED_THIS_WEEK, Defaults.MOST_WATCHED_THIS_WEEK)));
+            pr.setMostForkedThisWeek(processTopLanguage(page, props.getProperty(PropNames.MOST_FORKED_THIS_WEEK, Defaults.MOST_FORKED_THIS_WEEK)));
+            pr.setMostWatchedThisMonth(processTopLanguage(page, props.getProperty(PropNames.MOST_WATCHED_THIS_MONTH, Defaults.MOST_WATCHED_THIS_MONTH)));
+            pr.setMostForkedThisMonth(processTopLanguage(page, props.getProperty(PropNames.MOST_FORKED_THIS_MONTH, Defaults.MOST_FORKED_THIS_MONTH)));
+            pr.setMostWatchedOverall(processTopLanguage(page, props.getProperty(PropNames.MOST_WATCHED_OVERALL, Defaults.MOST_WATCHED_OVERALL)));
+            pr.setMostForkedOverall(processTopLanguage(page, props.getProperty(PropNames.MOST_FORKED_OVERALL, Defaults.MOST_FORKED_OVERALL)));
             pr.setMostWatchedProjects(getMostWatchedProjects(page, Integer.parseInt(props.getProperty(PropNames.MOST_WATCHED_DEPTH, Defaults.MOST_WATCHED_DEPTH)), pr));
         } catch (IOException e) {
             logger.error("IO exception fetching {}:", name, e);

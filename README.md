@@ -74,7 +74,7 @@ The schema is currently found in the project source code. See the top of
 [`src/main/java/net/wagstrom/research/github/language/DatabaseDriver.java`][DatabaseDriver.java]
 for the declarations of all of the tables.
 
-I'm Don't Want to Run this Scraper
+I Don't Want to Run this Scraper
 ----------------------------------
 
 That's great to hear. You probably shouldn't. I've been running this scraper
