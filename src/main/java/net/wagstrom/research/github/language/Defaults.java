@@ -20,13 +20,13 @@ public class Defaults {
     public static final String SEARCH_URL = "https://github.com/search";
     public static final String HTTP_DELAY = "1000";
     
-    public static final String MOST_WATCHED_TODAY = "Most Watched Today";
+    public static final String MOST_WATCHED_TODAY = "Most Starred Today";
     public static final String MOST_FORKED_TODAY = "Most Forked Today";
-    public static final String MOST_WATCHED_THIS_WEEK = "Most Watched This Week";
+    public static final String MOST_WATCHED_THIS_WEEK = "Most Starred This Week";
     public static final String MOST_FORKED_THIS_WEEK = "Most Forked This Week";
-    public static final String MOST_WATCHED_THIS_MONTH = "Most Watched This Month";
+    public static final String MOST_WATCHED_THIS_MONTH = "Most Starred This Month";
     public static final String MOST_FORKED_THIS_MONTH = "Most Forked This Month";
-    public static final String MOST_WATCHED_OVERALL = "Most Watched Overall";
+    public static final String MOST_WATCHED_OVERALL = "Most Starred Overall";
     public static final String MOST_FORKED_OVERALL = "Most Forked Overall";
     
     public static final String MOST_WATCHED_DEPTH = "10";
