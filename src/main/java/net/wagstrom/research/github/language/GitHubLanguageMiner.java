@@ -156,42 +156,7 @@ public class GitHubLanguageMiner {
         } catch (IOException e) {
             logger.error("IO exception fetching {}:", name, e);
         }
-        try {
-            pr.setNumProjects(searchNumProjects(name));
-        } catch (IOException e) {
-            logger.error("IO exception performing search for projects per page {}:", name, e);
-        }
         return pr;
-    }
-    
-    private int searchNumProjects(String language) throws IOException {
-        logger.info("searching for: total number projects");
-        int numProjects = 0;
-        String searchString = "language:\"" + language + "\"";
-        logger.trace("Fetching number of projects for language: {}", language);
-
-        HtmlForm form = (HtmlForm) searchPage.getElementById("search_form");
-        HtmlTextInput searchField = form.getInputByName("q");
-        HtmlButton submitButton = form.getFirstByXPath("//button[@type=\"submit\"]");
-        HtmlSelect select = form.getSelectByName("type");
-        HtmlOption option = select.getOptionByValue("Repositories");
-        select.setSelectedAttribute(option, true);
-        logger.trace("Setting search string to: {}", searchString);
-        searchField.setValueAttribute(searchString);
-        HtmlPage page2 = submitButton.click();
-        
-        httpSleep();
-        
-        HtmlElement el = page2.getFirstByXPath("//div[@class=\"header\"]/div[@class=\"title\"]");
-        logger.trace("New URI: {}", page2.getUrl());
-        String textContent = el.getTextContent();
-        logger.trace("Raw text: {}", textContent);
-        Matcher m1 = numReposMatch.matcher(textContent.trim());
-        if (m1.matches()) {
-            numProjects = Integer.parseInt(m1.group(1));
-            logger.trace("Language: {} Num Projects: {}", language, numProjects);
-        }
-        return numProjects;
     }
     
     private Collection<String> processTopLanguage(HtmlPage page, String h3Tag) {
