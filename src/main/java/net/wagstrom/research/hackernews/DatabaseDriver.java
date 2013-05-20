@@ -39,32 +39,40 @@ public class DatabaseDriver {
     
     private static final String DERBY_TABLE_EXISTS = "X0Y32";
     
-    private static final String UPDATE_TABLE = "CREATE TABLE githubupdate" +
-    		"(id int primary key generated always as identity," +
-    		"create_date timestamp not null default CURRENT_TIMESTAMP)";
-    private static final String LANGUAGE_TABLE = "CREATE TABLE proglang" +
-    		"(id int primary key generated always as identity," +
-    		"name varchar(64), create_date timestamp not null default CURRENT_TIMESTAMP)";
-    private static final String REPOSITORY_TABLE = "CREATE TABLE repo" +
-    		"(id int primary key generated always as identity," +
-    		"username varchar(64), reponame varchar(64)," +
-    		"create_date timestamp not null default CURRENT_TIMESTAMP)";
-    private static final String TOP_CATEGORY_TABLE = "CREATE TABLE topcategory" +
-    		"(id int primary key generated always as identity," +
-    		"name varchar(64), create_date timestamp not null default CURRENT_TIMESTAMP)";
-    private static final String PROJECT_UPDATE_TABLE = "CREATE TABLE repoupdate " +
-    		"(id int primary key generated always as identity," +
-    		"update_id int not null constraint projectupdate_githubupdate_fk references GITHUBUPDATE(id)," +
-    		"proglang_id int not null constraint projectudpate_language_fk references PROGLANG(id)," +
-    		"repo_id int not null constraint projectupdate_repository_fk references REPO(id)," +
-    		"category_id int not null constraint projectupdate_topcategory_fk references TOPCATEGORY(id)," +
-    		"rank int)";
-    private static final String LANGUAGE_UPDATE = "CREATE TABLE languageupdate" +
-    		"(id int primary key generated always as identity," +
-            "update_id int not null constraint languageupdate_githubupdate_fk references GITHUBUPDATE(id)," +
-    		"proglang_id int not null constraint languageupdate_language_fk references PROGLANG(id)," +
-    		"num_projects int not null," +
-    		"rank int not null)";
+    private static final String UPDATE_TABLE = 
+            "CREATE TABLE update" +
+            "(id int primary key generated always as identity," +
+            "create_date timestamp not null default CURRENT_TIMESTAMP)";
+    private static final String PAGE_CONTENT_TABLE =
+            "CREATE TABLE pagecontent" +
+            "(id int primary key generated always as identity," +
+            "item_id int not null," +
+            "url varchar(4096)" +
+            "content text," +
+            "is_hn boolean," +
+            "update_id int not null," +
+            "create_date timestamp not null default CURRENT_TIMESTAMP)";
+    private static final String ITEM_TABLE =
+            "CREATE TABLE story" +
+            "(id int primary key generated always as identity," +
+            "item_id int not null," +
+            "user_id int not null," +
+            "parent_id int," +
+            "votes int," +
+            "update_id int not null)";
+    private static final String USER_TABLE =
+            "CREATE TABLE user" +
+            "(id int primary key generated always as identity," +
+            "name varchar(255) not null," +
+            "hn_create_date timestamp," +
+            "hn_create_date_text varchar(255) not null," +
+            "create_date timestamp not null default CURRENT_TIMESTAMP)";
+    private static final String KARMA_TABLE =
+            "CREATE TABLE karma" +
+            "(id int primary key generated always as identity," +
+            "user_id int not null," +
+            "update_id int not null," +
+            "karma int not null)";
     
     private Properties props; 
     
@@ -105,11 +113,10 @@ public class DatabaseDriver {
     
     public void createTables() {
         createTable(UPDATE_TABLE);
-        createTable(LANGUAGE_TABLE);
-        createTable(REPOSITORY_TABLE);
-        createTable(TOP_CATEGORY_TABLE);
-        createTable(PROJECT_UPDATE_TABLE);
-        createTable(LANGUAGE_UPDATE);
+        createTable(PAGE_CONTENT_TABLE);
+        createTable(ITEM_TABLE);
+        createTable(USER_TABLE);
+        createTable(KARMA_TABLE);
     }
     
     private void createTable(String tableString) {
@@ -124,6 +131,23 @@ public class DatabaseDriver {
                 logger.error("Error creating table state={}:\n{}", new Object[]{e.getSQLState(), tableString, e});
             }
         }
+    }
+    
+    private int createUpdate() {
+        try {
+            PreparedStatement statement = connect.prepareStatement("INSERT INTO update", Statement.RETURN_GENERATED_KEYS);
+            statement.execute();
+            ResultSet rs = statement.getGeneratedKeys();
+            while (rs.next()) {
+                int rv = rs.getInt(1);
+                rs.close();
+                statement.close();
+                return rv;
+            }
+        } catch (SQLException e) {
+            logger.error("SQL exception creating update: ", e);
+        }
+        return -1;
     }
     
     private int getLanguage(String language) {
@@ -325,16 +349,16 @@ public class DatabaseDriver {
         for (Map.Entry<String, ProjectRecord> language : records.entrySet()) {
             int language_id = getLanguage(language.getKey());
             ProjectRecord record = language.getValue();
-            saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED, record.getMostWatchedProjects());
-            saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED_TODAY, record.getMostWatchedToday());
-            saveTopProjects(update_id, language_id, Defaults.MOST_FORKED_TODAY, record.getMostForkedToday());
-            saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED_THIS_WEEK, record.getMostWatchedThisWeek());
-            saveTopProjects(update_id, language_id, Defaults.MOST_FORKED_THIS_WEEK, record.getMostForkedThisWeek());
-            saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED_THIS_MONTH, record.getMostWatchedThisMonth());
-            saveTopProjects(update_id, language_id, Defaults.MOST_FORKED_THIS_MONTH, record.getMostForkedThisMonth());
-            saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED_OVERALL, record.getMostWatchedOverall());
-            saveTopProjects(update_id, language_id, Defaults.MOST_FORKED_OVERALL, record.getMostForkedOverall());
-            saveLanguageUpdate(update_id, language_id, record.getNumProjects(), record.getRank());
+//            saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED, record.getMostWatchedProjects());
+//            saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED_TODAY, record.getMostWatchedToday());
+//            saveTopProjects(update_id, language_id, Defaults.MOST_FORKED_TODAY, record.getMostForkedToday());
+//            saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED_THIS_WEEK, record.getMostWatchedThisWeek());
+//            saveTopProjects(update_id, language_id, Defaults.MOST_FORKED_THIS_WEEK, record.getMostForkedThisWeek());
+//            saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED_THIS_MONTH, record.getMostWatchedThisMonth());
+//            saveTopProjects(update_id, language_id, Defaults.MOST_FORKED_THIS_MONTH, record.getMostForkedThisMonth());
+//            saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED_OVERALL, record.getMostWatchedOverall());
+//            saveTopProjects(update_id, language_id, Defaults.MOST_FORKED_OVERALL, record.getMostForkedOverall());
+//            saveLanguageUpdate(update_id, language_id, record.getNumProjects(), record.getRank());
         }
     }
 }

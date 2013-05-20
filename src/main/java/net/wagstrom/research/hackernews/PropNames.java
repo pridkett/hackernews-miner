@@ -22,4 +22,6 @@ public class PropNames {
     public static final String PAGE_FETCH_DELAY = "net.wagstrom.research.hackernews.page_fetch_delay";
     public static final String NUM_TOP_PAGES = "net.wagstrom.research.hackernews.num_top_pages";
     public static final String NUM_NEW_PAGES = "net.wagstrom.research.hackernews.num_new_pages";
+    public static final String JDBC_DRIVER = "net.wagstrom.research.hackernews.jdbc_driver";
+    public static final String JDBC_URL = "net.wagstrom.research.hackernews.jdbc_url";
 }

@@ -20,6 +20,7 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -41,7 +43,7 @@ public class HackernewsMiner {
     private Pattern rankMatch = null;
     private Pattern numReposMatch = null;
     private HtmlPage searchPage;
-    private int httpDelay = 1000;
+    private int httpDelay = 30000;
     
     public HackernewsMiner() {
         logger = LoggerFactory.getLogger(HackernewsMiner.class);
@@ -59,23 +61,29 @@ public class HackernewsMiner {
         HashMap<String, ProjectRecord> projectRecords = new HashMap<String, ProjectRecord>();
         HashMap<String, HtmlAnchor> languageLinks = getLanguageLinks();
         
-        String searchUrl = props.getProperty(PropNames.SEARCH_URL, Defaults.SEARCH_URL);
-        try {
-            searchPage = wc.getPage(searchUrl);
-        } catch (IOException e) {
-            logger.error("Unable to fetch search page {}:", searchUrl, e);
-        }
         
-        httpSleep();
-        for (Map.Entry<String, HtmlAnchor> language : languageLinks.entrySet()) {
-            String languageName = language.getKey();
-            HtmlAnchor languageAnchor = language.getValue();
-            projectRecords.put(languageName, fetchLanguage(languageName, languageAnchor));
-            httpSleep();
-        }
-        DatabaseDriver db = new DatabaseDriver();
-        db.saveProjectRecords(projectRecords);
-        db.close();
+        mineHackerNews(props.getProperty(PropNames.BASE_URL, Defaults.BASE_URL),
+                Integer.parseInt(props.getProperty(PropNames.NUM_TOP_PAGES, Defaults.NUM_TOP_PAGES)));
+        mineHackerNews(props.getProperty(PropNames.NEW_URL, Defaults.NEW_URL),
+                Integer.parseInt(props.getProperty(PropNames.NUM_NEW_PAGES, Defaults.NUM_NEW_PAGES)));
+        
+//        String searchUrl = props.getProperty(PropNames.SEARCH_URL, Defaults.SEARCH_URL);
+//        try {
+//            searchPage = wc.getPage(searchUrl);
+//        } catch (IOException e) {
+//            logger.error("Unable to fetch search page {}:", searchUrl, e);
+//        }
+//        
+//        httpSleep();
+//        for (Map.Entry<String, HtmlAnchor> language : languageLinks.entrySet()) {
+//            String languageName = language.getKey();
+//            HtmlAnchor languageAnchor = language.getValue();
+//            projectRecords.put(languageName, fetchLanguage(languageName, languageAnchor));
+//            httpSleep();
+//        }
+//        DatabaseDriver db = new DatabaseDriver();
+//        db.saveProjectRecords(projectRecords);
+//        db.close();
     }
 
     private void httpSleep() {
@@ -86,6 +94,21 @@ public class HackernewsMiner {
         }
     }
 
+    private void mineHackerNews(String url, int numPages) {
+        HtmlPage page = null;
+        String nextUrl = url;
+        while (numPages-- > 0) {
+            try {
+                page = wc.getPage(nextUrl);
+            } catch (IOException e) {
+                logger.error("Unable to fetch page {}:", nextUrl, e);
+            }
+            List<?> nodes = page.getByXPath("//table//table[position()==1]");
+            DomNode d = (DomNode)nodes.get(0);
+            logger.info(d.getTextContent());
+        }
+    }
+    
     /**
      * Visits https://github.com/langauges and gets all languages
      * 

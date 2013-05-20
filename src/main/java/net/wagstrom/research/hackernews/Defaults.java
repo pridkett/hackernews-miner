@@ -24,4 +24,7 @@ public class Defaults {
     
     public static final String NUM_TOP_PAGES = "5";
     public static final String NUM_NEW_PAGES = "5";
+    
+    public static final String JDBC_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
+    public static final String JDBC_URL = "jdbc:derby:test.db;create=true";
 }
