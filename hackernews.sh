@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2011 IBM Corporation
+# Copyright 2013 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,21 +14,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-CP=$( echo `dirname $0`/../lib/*.jar . | sed 's/ /:/g')
-
-# Find Java
-if [ "$JAVA_HOME" = "" ] ; then
-    JAVA="java -server"
-else
-    JAVA="$JAVA_HOME/bin/java -server"
-fi
-
-# Set Java options
-if [ "$JAVA_OPTIONS" = "" ] ; then
-    JAVA_OPTIONS="-Xms32M -Xmx512M"
-fi
-
-$JAVA $JAVA_OPTIONS -cp $CP net.wagstrom.research.github.language.GitHubLanguageMinerMain "$@"
-
-# Return the program's exit code
-exit $?
+target/hackernews-miner-*-standalone/bin/hackernews.sh "$@"

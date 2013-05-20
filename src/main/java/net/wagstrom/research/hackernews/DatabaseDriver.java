@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.wagstrom.research.github.language;
+package net.wagstrom.research.hackernews;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -73,7 +73,7 @@ public class DatabaseDriver {
     
     public DatabaseDriver() {
         logger = LoggerFactory.getLogger(DatabaseDriver.class);
-        props = GitHubLanguageMinerProperties.props();
+        props = HackernewsMinerProperties.props();
         categoryMap = new HashMap<String, Integer>();
         repositoryMap = new HashMap<String, Integer>();
         try {

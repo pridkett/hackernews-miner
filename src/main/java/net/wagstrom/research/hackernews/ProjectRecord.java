@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.wagstrom.research.github.language;
+package net.wagstrom.research.hackernews;
 
 import java.util.Collection;
 

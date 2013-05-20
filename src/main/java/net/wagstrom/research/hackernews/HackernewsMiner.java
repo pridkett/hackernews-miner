@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.wagstrom.research.github.language;
+package net.wagstrom.research.hackernews;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -31,16 +31,10 @@ import org.slf4j.LoggerFactory;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
-import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlOption;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.gargoylesoftware.htmlunit.html.HtmlSelect;
-import com.gargoylesoftware.htmlunit.html.HtmlSubmitInput;
-import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
 
-public class GitHubLanguageMiner {
+public class HackernewsMiner {
     private Logger logger = null;
     private WebClient wc;
     private Properties props;
@@ -49,13 +43,13 @@ public class GitHubLanguageMiner {
     private HtmlPage searchPage;
     private int httpDelay = 1000;
     
-    public GitHubLanguageMiner() {
-        logger = LoggerFactory.getLogger(GitHubLanguageMiner.class);
+    public HackernewsMiner() {
+        logger = LoggerFactory.getLogger(HackernewsMiner.class);
         wc = new WebClient(BrowserVersion.FIREFOX_3_6);
         wc.setThrowExceptionOnFailingStatusCode(false);
         wc.setJavaScriptEnabled(false);
         wc.setCssEnabled(false);
-        props = GitHubLanguageMinerProperties.props();
+        props = HackernewsMinerProperties.props();
         rankMatch = Pattern.compile("is the (#([0-9]+) )?most popular language on GitHub");
         numReposMatch = Pattern.compile("Repositories \\(([0-9]+)\\)");
         httpDelay = Integer.parseInt(props.getProperty(PropNames.HTTP_DELAY, Defaults.HTTP_DELAY));

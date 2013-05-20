@@ -1,11 +1,11 @@
-github-language-miner
+hackernews-miner
 =====================
 
-Copyright (c) 2012 IBM Corporation
+Copyright (c) 2013 IBM Corporation
 
-This is primarily a research tool that can connect to [github.com/languages][githublanguages]
-and save a list of the top projects per language. It is developed under the auspices of a
-joint study agreement between IBM Research and the University of Nebraska-Lincoln.
+This is primarily a research tool that can connect to [hackernews][hackernews]
+and build a database of links, comments, and votes. It's designed to allow us to
+explore what's hot and cool among the brightest software engineers in the world.
 
 The primary developer of this software is [Patrick Wagstrom][mywebpage].
 License
@@ -26,25 +26,25 @@ Usage
 
 The defaults for the script are pretty sane. You can just type:
 
-    ./github.sh
+    ./hackernews.sh
 
 If you would rather specify a configuration file use:
 
-    ./github.sh -c [CONFIGURATION]
+    ./hackernews.sh -c [CONFIGURATION]
 
 Configuration Settings
 ----------------------
 
-See [`src/main/java/net/wagstrom/research/github/language/PropNames.java`][PropNames.java]
+See [`src/main/java/net/wagstrom/research/hackernews/PropNames.java`][PropNames.java]
 for the names of properties. The default values for those properties can be found in
-[`src/main/java/net/wagstrom/research/github/language/Defaults.java`][Defaults.java].
+[`src/main/java/net/wagstrom/research/hackernews/Defaults.java`][Defaults.java].
 
 Properties that are not set in the configuration file will use default values.
 
 In general you can get by with a simple configuration file like this:
 
-    net.wagstrom.research.github.language.jdbc_driver=org.apache.derby.jdbc.EmbeddedDriver
-    net.wagstrom.research.github.language.jdbc_url=jdbc:derby:test.db;create=true
+    net.wagstrom.research.hackernews.jdbc_driver=org.apache.derby.jdbc.EmbeddedDriver
+    net.wagstrom.research.hackernews.jdbc_url=jdbc:derby:test.db;create=true
 
 Everything else should magically work.
 
@@ -71,7 +71,7 @@ Database Schema
 ---------------
 
 The schema is currently found in the project source code. See the top of
-[`src/main/java/net/wagstrom/research/github/language/DatabaseDriver.java`][DatabaseDriver.java]
+[`src/main/java/net/wagstrom/research/hackernews/DatabaseDriver.java`][DatabaseDriver.java]
 for the declarations of all of the tables.
 
 I Don't Want to Run this Scraper
@@ -92,16 +92,16 @@ are able to patch the bug yourself, please [create a pull request on github][pul
 If you have other contributions you think might be helpful feel free to [create a pull request on github][pullrequest],
 although it might be helpful to [contact me][myemail] with your idea first.
 
-[issue]: https://github.com/pridkett/github-language-miner/issues
-[pullrequest]: https://github.com/pridkett/github-language-miner/pulls
+[hackernews]: https://news.ycombinator.com/
+[issue]: https://github.com/pridkett/hackernews-miner/issues
+[pullrequest]: https://github.com/pridkett/hackernews-miner/pulls
 [myemail]: mailto:patrick@wagstrom.net
-[githublanguages]: https://github.com/languages
 [mywebpage]: http://patrick.wagstrom.net/
-[dataemail]: mailto:patrick@wagstrom.net?subject=I+would+like+a+copy+of+the+github-language-miner+data
+[dataemail]: mailto:patrick@wagstrom.net?subject=I+would+like+a+copy+of+the+hackernews-miner+data
 [maven]: http://maven.apache.org/
 [derby]: http://db.apache.org/derby/
 [derbyij]: http://db.apache.org/derby/integrate/plugin_help/ij_toc.html
-[DatabaseDriver.java]: https://github.com/pridkett/github-language-miner/blob/master/src/main/java/net/wagstrom/research/github/language/DatabaseDriver.java
-[PropNames.java]: https://github.com/pridkett/github-language-miner/blob/master/src/main/java/net/wagstrom/research/github/language/PropNames.java
-[Defaults.java]: https://github.com/pridkett/github-language-miner/blob/master/src/main/java/net/wagstrom/research/github/language/Defaults.java
+[DatabaseDriver.java]: https://github.com/pridkett/hackernews-miner/blob/master/src/main/java/net/wagstrom/research/hackernews/DatabaseDriver.java
+[PropNames.java]: https://github.com/pridkett/hackernews-miner/blob/master/src/main/java/net/wagstrom/research/hackernews/PropNames.java
+[Defaults.java]: https://github.com/pridkett/hackernews-miner/blob/master/src/main/java/net/wagstrom/research/hackernews/Defaults.java
 [license]: http://www.apache.org/licenses/LICENSE-2.0.html

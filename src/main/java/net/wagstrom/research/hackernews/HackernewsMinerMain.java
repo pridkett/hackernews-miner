@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 IBM Corporation 
+ * Copyright (c) 2012-2013 IBM Corporation 
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.wagstrom.research.github.language;
+package net.wagstrom.research.hackernews;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -26,7 +26,7 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 
-public class GitHubLanguageMinerMain {
+public class HackernewsMinerMain {
     private Logger log = null;
 
     @Option(name="-c", usage="properties file for configuration")
@@ -37,12 +37,12 @@ public class GitHubLanguageMinerMain {
 
     public static void main( String[] args )
     {
-        GitHubLanguageMinerMain a = new GitHubLanguageMinerMain();
+        HackernewsMinerMain a = new HackernewsMinerMain();
         a.run(args);
     }
 
-    public GitHubLanguageMinerMain() {
-        log = LoggerFactory.getLogger(GitHubLanguageMinerMain.class);
+    public HackernewsMinerMain() {
+        log = LoggerFactory.getLogger(HackernewsMinerMain.class);
     }
 
     public void run(String[] args) {
@@ -53,7 +53,7 @@ public class GitHubLanguageMinerMain {
 
             if (propsFile != null) {
                 log.debug("Attempting to read properties file: {}", propsFile);
-                GitHubLanguageMinerProperties.props(propsFile);
+                HackernewsMinerProperties.props(propsFile);
             }
 
             if (logbackFile != null) {
@@ -72,10 +72,10 @@ public class GitHubLanguageMinerMain {
                 }
                 StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
             }
-            new GitHubLanguageMiner().run();
+            new HackernewsMiner().run();
         } catch (CmdLineException e) {
             System.err.println(e.getMessage());
-            System.err.println("\nrepository_loader [options...] arguments...");
+            System.err.println("\nhackernews [options...] arguments...");
             parser.printUsage(System.err);
         }
     }

@@ -5,3 +5,4 @@ target
 derby.log
 dbTest
 bin
+test.db

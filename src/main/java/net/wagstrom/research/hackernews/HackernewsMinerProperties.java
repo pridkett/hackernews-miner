@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.wagstrom.research.github.language;
+package net.wagstrom.research.hackernews;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -27,7 +27,7 @@ import java.util.Properties;
  * 
  * @author Patrick Wagstrom <patrick@wagstrom.net>
  */
-public class GitHubLanguageMinerProperties {
+public class HackernewsMinerProperties {
     static Properties _githubProperties = null;
 
     /**

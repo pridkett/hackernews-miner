@@ -3,19 +3,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>net.wagstrom.research</groupId>
-  <artifactId>github-language-miner</artifactId>
+  <artifactId>hackernews-miner</artifactId>
   <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>github-language-miner</name>
-  <description>A simple tool that connects to the github.com/languages page
-    and creates a database of all of the current top projects on a
-    per-language basis. This data is then saved inside of a derby database.
-
-    This allows the tracking of the top projects over time and across all
-    languages.
-  </description>
-  <url>http://academic.patrick.wagstrom.net/projects/github</url>
+  <name>hackernews-miner</name>
+  <description>A simple tool that builds a database of what people are talking about on Hacker News</description>
+  <url>http://academic.patrick.wagstrom.net/projects/hackernews-miner</url>
   <inceptionYear>2012</inceptionYear>
   <developers>
     <developer>
