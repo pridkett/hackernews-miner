@@ -2,6 +2,8 @@ package net.wagstrom.research.hackernews;
 
 import static org.junit.Assert.*;
 
+import java.util.List;
+
 import net.wagstrom.research.hackernews.dbobjs.Update;
 
 import org.junit.Test;
@@ -18,13 +20,27 @@ public class UpdateTest extends TestBase {
     }
     
     @Test
-    public void testCreate() {
+    public void testInsert() {
         Update u1 = new Update();
         em.getTransaction().begin();
         em.persist(u1);
         em.getTransaction().commit();
         logger.info("ID: {}", u1.getId());
         logger.info("createDate: {}", u1.getCreateDate());
+    }
+    
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testInsertAndRetrieve() {
+        Update u1 = new Update();
+        em.getTransaction().begin();
+        em.persist(u1);
+        em.getTransaction().commit();
+        
+        final List<Update> l = em.createQuery("SELECT u from Update u")
+                .getResultList();
+        
+        assertEquals(1, l.size());
     }
 
 }
