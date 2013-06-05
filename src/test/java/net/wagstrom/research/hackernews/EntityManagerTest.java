@@ -12,25 +12,14 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EntityManagerTest {
+public class EntityManagerTest extends TestBase{
     private Logger logger = null;
 
-    private EntityManagerFactory emf;
-    
-    private EntityManager em;
- 
-    @Before
-    public void initEmfAndEm() {
-        logger = LoggerFactory.getLogger(HackernewsMiner.class);
- 
-        emf = Persistence.createEntityManagerFactory("persistence-unit");
-        em = emf.createEntityManager();
+    public EntityManagerTest() {
+        super();
+        logger = LoggerFactory.getLogger(EntityManagerTest.class);
     }
- 
-    @After
-    public void cleanup() {
-        em.close();
-    }
+
  
     @Test
     public void emptyTest() {

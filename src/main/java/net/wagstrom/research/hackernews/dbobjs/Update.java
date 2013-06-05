@@ -2,10 +2,12 @@ package net.wagstrom.research.hackernews.dbobjs;
 
 import java.util.Date;
 
+import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -27,7 +29,8 @@ public class Update {
         this.id = id;
     }
     
-    @Column(name="create_date")
+    @Basic(optional=false)
+    @Column(name="create_date", updatable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     @Temporal(TemporalType.TIMESTAMP)
     public Date getCreateDate() {
         return createDate;
@@ -36,4 +39,8 @@ public class Update {
         this.createDate = createDate;
     }
     
+    @PrePersist
+    protected void onUpdate() {
+        this.createDate = new Date();
+    }
 }

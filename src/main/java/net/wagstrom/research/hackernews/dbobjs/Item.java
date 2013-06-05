@@ -84,7 +84,7 @@ public class Item implements Serializable {
         this.updateId = updateId;
     }
     
-    @Column(name="create_date")
+    @Column(name="create_date", updatable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     @Temporal(TemporalType.TIMESTAMP)
     public Date getCreateDate() {
         return createDate;
@@ -93,4 +93,8 @@ public class Item implements Serializable {
         this.createDate = createDate;
     }
     
+    @PrePersist
+    protected void onUpdate() {
+        this.createDate = new Date();
+    }
 }
