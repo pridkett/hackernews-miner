@@ -31,7 +31,7 @@ public class Item implements Serializable {
     private Integer itemId;
     private String url;
     private String text;
-    private Boolean isHn;
+    private Boolean isHn = true;
     private Integer updateId;
     private Date createDate;
 
@@ -69,7 +69,7 @@ public class Item implements Serializable {
         this.text = text;
     }
     
-    @Column(name="is_hn")
+    @Column(name="is_hn", nullable=false)
     public Boolean getIsHn() {
         return isHn;
     }
@@ -77,7 +77,7 @@ public class Item implements Serializable {
         this.isHn = isHn;
     }
     
-    @Column(name="update_id")
+    @Column(name="update_id", nullable=false)
     public Integer getUpdateId() {
         return updateId;
     }
