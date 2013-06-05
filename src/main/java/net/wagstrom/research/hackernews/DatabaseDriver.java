@@ -16,6 +16,7 @@
 package net.wagstrom.research.hackernews;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,6 +26,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
+import net.wagstrom.research.hackernews.dbobjs.Item;
+import net.wagstrom.research.hackernews.dbobjs.Karma;
+import net.wagstrom.research.hackernews.dbobjs.Story;
+import net.wagstrom.research.hackernews.dbobjs.User;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,9 +76,10 @@ public class DatabaseDriver {
     private static final String KARMA_TABLE =
             "CREATE TABLE karma" +
             "(id int primary key generated always as identity," +
-            "user_id int not null," +
+            "user_id int," +
             "update_id int not null," +
-            "karma int not null)";
+            "karma int not null," +
+            "create_date timestamp not null default CURRENT_TIMESTAMP)";
     
     private Properties props; 
     
@@ -150,215 +157,111 @@ public class DatabaseDriver {
         return -1;
     }
     
-    private int getLanguage(String language) {
-        int rv = -1;
+    private User getUser(String username) {
         try {
-            PreparedStatement statement = connect.prepareStatement("SELECT id FROM proglang WHERE name=?");
-            statement.setString(1, language);
-            ResultSet rs = statement.executeQuery();
-            while (rs.next()) {
-                rv = rs.getInt("id");
-                rs.close();
-                statement.close();
-                return rv;
-            }
-            rs.close();
-            statement.close();
-            return createLanguage(language);
-        } catch (SQLException e) {
-            logger.error("SQL exception getting language: {}", language, e);
-        }
-        return rv;
-    }
-    
-    private int createLanguage(String language) {
-        try {
-            PreparedStatement statement = connect.prepareStatement("INSERT INTO proglang (name) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
-            statement.setString(1, language);
-            statement.execute();
-            ResultSet rs = statement.getGeneratedKeys();
-            while (rs.next()) {
-                int rv = rs.getInt(1);
-                rs.close();
-                statement.close();
-                return rv;
-            }
-        } catch (SQLException e) {
-            logger.error("SQL exception creating language: {}", language, e);
-        }
-        return -1;
-    }
-
-    private int createGitHubUpdate() {
-        try {
-            Statement statement = connect.createStatement();
-            statement.execute("INSERT INTO githubupdate (create_date) VALUES (CURRENT_TIMESTAMP)",
-                    Statement.RETURN_GENERATED_KEYS);
-            ResultSet rs = statement.getGeneratedKeys();
-            while (rs.next()) {
-                int rv = rs.getInt(1);
-                rs.close();
-                statement.close();
-                return rv;
-            }
-            rs.close();
-            statement.close();
-        } catch (SQLException e) {
-            logger.error("SQL exception creating githubupdate:",e);
-        }
-        return -1;
-    }
-
-    private int createCategory(String categoryName) {
-        try {
-            PreparedStatement statement = connect.prepareStatement("INSERT INTO topcategory (name) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
-            statement.setString(1, categoryName);
-            statement.execute();
-            ResultSet rs = statement.getGeneratedKeys();
-            while (rs.next()) {
-                int rv = rs.getInt(1);
-                rs.close();
-                categoryMap.put(categoryName, rv);
-                statement.close();
-                return rv;
-            }
-            rs.close();
-            statement.close();
-        } catch (SQLException e) {
-            logger.error("SQL exception creating category: {}", categoryName, e);
-        }
-        return -1;
-    }
-
-    private int getCategory(String categoryName) {
-        if (categoryMap.containsKey(categoryName)) { return categoryMap.get(categoryName); }
-        try {
-            PreparedStatement statement = connect.prepareStatement("SELECT id FROM topcategory WHERE name=?");
-            statement.setString(1, categoryName);
-            ResultSet rs = statement.executeQuery();
-            while (rs.next()) {
-                int rv = rs.getInt("id");
-                rs.close();
-                categoryMap.put(categoryName, rv);
-                statement.close();
-                return rv;
-            }
-            rs.close();
-            statement.close();
-            return createCategory(categoryName);
-        } catch (SQLException e) {
-            logger.error("SQL exception getting category: {}", categoryName, e);
-        }
-        return -1;
-    }
-    
-    private int createRepository(String username, String reponame) {
-        try {
-            PreparedStatement statement = connect.prepareStatement("INSERT INTO repo (username, reponame) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement statement = connect.prepareStatement("SELECT id, name, hn_create_date, hn_create_date_text, create_text FROM user WHERE name=?");
             statement.setString(1, username);
-            statement.setString(2, reponame);
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()) {
+                User rv = new User();
+                rv.setId(rs.getInt("id"));
+                rv.setName(rs.getString("name"));
+                rv.setHnCreateDate(rs.getDate("hn_create_date"));
+                rv.setHnCreateDateText(rs.getString("hn_create_date_text"));
+                rv.setCreateDate(rs.getDate("create_date"));
+                rs.close();
+                statement.close();
+                return rv;
+            }
+        } catch (SQLException e) {
+            logger.error("SQL exception getting user: ", e);
+        }
+        return null;
+    }
+    
+    private User createUser(User u) {
+        try {
+            PreparedStatement statement = connect.prepareStatement("INSERT INTO user (name, hn_create_date, hn_create_date_text) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, u.getName());
+            statement.setDate(2, (Date) u.getHnCreateDate());
+            statement.setString(3, u.getHnCreateDateText());
             statement.execute();
             ResultSet rs = statement.getGeneratedKeys();
             while (rs.next()) {
-                int rv = rs.getInt(1);
+                int id = rs.getInt(1);
+                u.setId(rs.getInt(1));
                 rs.close();
-                repositoryMap.put(username + "/" + reponame, rv);
                 statement.close();
-                return rv;
+                return u;
             }
-            rs.close();
-            statement.close();
         } catch (SQLException e) {
-            logger.error("SQL exception creating repository: {}/{}", new Object[]{username, reponame, e});
+            logger.error("SQL exception creating user: {}", u, e);
         }
-        return -1;
-    }
-
-    private int getRepository(String repositoryName) {
-        repositoryName = repositoryName.trim();
-        if (repositoryName.startsWith("/")) {
-            repositoryName = repositoryName.substring(1);
-        }
-        // FIXME: this really should do more checking here...
-        String [] parts = repositoryName.split("/");
-        return getRepository(parts[0], parts[1]);
+        return null;
     }
     
-    private int getRepository(String username, String reponame) {
-        if (repositoryMap.containsKey(username + "/" + reponame)) {
-            return repositoryMap.get(username + "/" + reponame);
-        }
+    private Karma createKarma(Karma k) {
         try {
-            PreparedStatement statement = connect.prepareStatement("SELECT id FROM repo WHERE username=? AND reponame=?");
-            statement.setString(1, username);
-            statement.setString(2, reponame);
-            ResultSet rs = statement.executeQuery();
-            while (rs.next()) {
-                int rv = rs.getInt("id");
-                rs.close();
-                repositoryMap.put(username + "/" + reponame, rv);
-                statement.close();
-                return rv;
-            }
-            rs.close();
-            statement.close();
-            return createRepository(username, reponame);
-        } catch (SQLException e) {
-            logger.error("SQL exception getting category: {}/{}", new Object[]{username, reponame, e});
-        }
-        return -1;
-    }
-    
-    private void saveTopProjects(int update_id, int language_id, String categoryName, Collection<String> repositories) {
-        int category_id = getCategory(categoryName);
-        int ctr = 1;
-        try {
-            PreparedStatement statement = connect.prepareStatement("INSERT INTO repoupdate(update_id, proglang_id, repo_id, category_id, rank) VALUES (?, ?, ?, ?, ?)");
-            for (String s : repositories) {
-                int repository_id = getRepository(s);
-                statement.setInt(1, update_id);
-                statement.setInt(2, language_id);
-                statement.setInt(3, repository_id);
-                statement.setInt(4, category_id);
-                statement.setInt(5, ctr++);
-                statement.execute();
-            }
-            statement.close();
-        } catch (SQLException e) {
-            logger.error("SQL exception saving top projects language: {}, category: {}", new Object[]{language_id, categoryName, e});
-        }
-    }
-
-    private void saveLanguageUpdate(int update_id, int language_id, int num_projects, int rank) {
-        try {
-            PreparedStatement statement = connect.prepareStatement("INSERT INTO languageupdate(update_id, proglang_id, num_projects, rank) VALUES (?, ?, ?, ?)");
-            statement.setInt(1, update_id);
-            statement.setInt(2, language_id);
-            statement.setInt(3, num_projects);
-            statement.setInt(4, rank);
+            PreparedStatement statement = connect.prepareStatement("INSERT INTO karma(userId, updateId, karma) values (?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+            statement.setInt(1, k.getUserId());
+            statement.setInt(2, k.getUpdateId());
+            statement.setInt(3, k.getKarma());
             statement.execute();
-            statement.close();
+            ResultSet rs = statement.getGeneratedKeys();
+            while (rs.next()) {
+                k.setId(rs.getInt(1));
+                rs.close();
+                statement.close();
+                return k;
+            }
         } catch (SQLException e) {
-            logger.error("SQL exception saving language update proglang: {}, update: {}, num_projects: {}, rank: {}", new Object[]{language_id, update_id, num_projects, rank, e});
+            logger.error("SQL exception saving karma: {}", k, e);
         }
+        return null;
     }
     
-    public void saveProjectRecords(HashMap<String, ProjectRecord> records) {
-        int update_id = createGitHubUpdate();
-        logger.info("update id: {}", update_id);
-        for (Map.Entry<String, ProjectRecord> language : records.entrySet()) {
-            int language_id = getLanguage(language.getKey());
-            ProjectRecord record = language.getValue();
-//            saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED, record.getMostWatchedProjects());
-//            saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED_TODAY, record.getMostWatchedToday());
-//            saveTopProjects(update_id, language_id, Defaults.MOST_FORKED_TODAY, record.getMostForkedToday());
-//            saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED_THIS_WEEK, record.getMostWatchedThisWeek());
-//            saveTopProjects(update_id, language_id, Defaults.MOST_FORKED_THIS_WEEK, record.getMostForkedThisWeek());
-//            saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED_THIS_MONTH, record.getMostWatchedThisMonth());
-//            saveTopProjects(update_id, language_id, Defaults.MOST_FORKED_THIS_MONTH, record.getMostForkedThisMonth());
-//            saveTopProjects(update_id, language_id, Defaults.MOST_WATCHED_OVERALL, record.getMostWatchedOverall());
-//            saveTopProjects(update_id, language_id, Defaults.MOST_FORKED_OVERALL, record.getMostForkedOverall());
-//            saveLanguageUpdate(update_id, language_id, record.getNumProjects(), record.getRank());
+    private Story createStory(Story s) {
+        try {
+            PreparedStatement statement = connect.prepareStatement("INSERT INTO story(item_id, user_id, parent_id, votes, update_id) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+            statement.setInt(1, s.getItemId());
+            statement.setInt(2, s.getUserId());
+            statement.setInt(3, s.getParentId());
+            statement.setInt(4, s.getVotes());
+            statement.setInt(5, s.getUpdateId());
+            statement.execute();
+            ResultSet rs = statement.getGeneratedKeys();
+            while (rs.next()) {
+                s.setId(rs.getInt(1));
+                rs.close();
+                statement.close();
+                return s;
+            }
+        } catch (SQLException e) {
+            logger.error("SQL exception saving story: {}", s, e);
         }
+        return null;
     }
+    
+    private Item createItem(Item i) {
+        try {
+            PreparedStatement statement = connect.prepareStatement("INSERT INTO item(item_id, url, text, is_hn, update_id) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+            statement.setInt(1, i.getItemId());
+            statement.setString(2, i.getUrl());
+            statement.setString(3, i.getText());
+            statement.setBoolean(4, i.getIsHn());
+            statement.setInt(5, i.getUpdateId());
+            statement.execute();
+            ResultSet rs = statement.getGeneratedKeys();
+            while (rs.next()) {
+                i.setId(rs.getInt(1));
+                rs.close();
+                statement.close();
+                return i;
+            }
+        } catch (SQLException e) {
+            logger.error("SQL exception saving item: {}", i, e);
+        }
+        return null;
+    }
+    
 }

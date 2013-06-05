@@ -58,15 +58,15 @@ public class HackernewsMiner {
     }
 
     public void run() {
-        HashMap<String, ProjectRecord> projectRecords = new HashMap<String, ProjectRecord>();
-        HashMap<String, HtmlAnchor> languageLinks = getLanguageLinks();
-        
-        
-        mineHackerNews(props.getProperty(PropNames.BASE_URL, Defaults.BASE_URL),
-                Integer.parseInt(props.getProperty(PropNames.NUM_TOP_PAGES, Defaults.NUM_TOP_PAGES)));
-        mineHackerNews(props.getProperty(PropNames.NEW_URL, Defaults.NEW_URL),
-                Integer.parseInt(props.getProperty(PropNames.NUM_NEW_PAGES, Defaults.NUM_NEW_PAGES)));
-        
+//        HashMap<String, ProjectRecord> projectRecords = new HashMap<String, ProjectRecord>();
+//        HashMap<String, HtmlAnchor> languageLinks = getLanguageLinks();
+//        
+//        
+//        mineHackerNews(props.getProperty(PropNames.BASE_URL, Defaults.BASE_URL),
+//                Integer.parseInt(props.getProperty(PropNames.NUM_TOP_PAGES, Defaults.NUM_TOP_PAGES)));
+//        mineHackerNews(props.getProperty(PropNames.NEW_URL, Defaults.NEW_URL),
+//                Integer.parseInt(props.getProperty(PropNames.NUM_NEW_PAGES, Defaults.NUM_NEW_PAGES)));
+//        
 //        String searchUrl = props.getProperty(PropNames.SEARCH_URL, Defaults.SEARCH_URL);
 //        try {
 //            searchPage = wc.getPage(searchUrl);
@@ -115,140 +115,140 @@ public class HackernewsMiner {
      * This is a little specific to the current formatting of the
      * pages, but that's a problem with any scraper.
      */
-    private HashMap<String, HtmlAnchor> getLanguageLinks() {
-        String baseUrl = props.getProperty(PropNames.BASE_URL, Defaults.BASE_URL);
-        HashMap<String, HtmlAnchor> languageLinks = new HashMap<String, HtmlAnchor>();
-        try {
-            HtmlPage page = wc.getPage(baseUrl);
-            
-            HtmlElement el = page.getElementById("languages");
-            el = el.getFirstByXPath("//div[@class=\"all_languages\"]/div/ul");
-            for (HtmlElement anchor : el.getHtmlElementsByTagName("a")) {
-                logger.trace(anchor.asText());
-                logger.trace(anchor.getAttribute("href"));
-                if (anchor instanceof HtmlAnchor) {
-                    languageLinks.put(anchor.asText(), (HtmlAnchor) anchor);
-                } else {
-                    logger.warn("Found a non-HtmlAnchor element: {}", anchor);
-                }
-            }
-        } catch (MalformedURLException e) {
-            logger.error("invalid url: {}", baseUrl, e);
-        } catch (IOException e) {
-            logger.error("IO exception: {}", e);
-        }
-        return languageLinks;
-    }
-    
-    private ProjectRecord fetchLanguage(String name, HtmlAnchor anchor) {
-        ProjectRecord pr = new ProjectRecord(name);
-        
-        HtmlPage page = null;
-        try {
-            httpSleep();
-            page = anchor.click();
-            logger.trace("Page URL: {}", page.getUrl());
-            HtmlElement el = page.getFirstByXPath("//div[@class=\"pagehead\"]/descendant::h1/em");
-            String textContent = el.getTextContent();
-            Matcher m1 = rankMatch.matcher(textContent.trim());
-            if (m1.matches()) {
-                if (m1.groupCount() > 0) {
-                    int rank = 1;
-                    if (m1.group(2) != null) {
-                        rank = Integer.parseInt(m1.group(2));
-                    }
-                    pr.setRank(rank);
-                    logger.info("language {}: rank: {}", name, rank);
-                }
-            }
-            pr.setMostWatchedToday(processTopLanguage(page, props.getProperty(PropNames.MOST_WATCHED_TODAY, Defaults.MOST_WATCHED_TODAY)));
-            pr.setMostForkedToday(processTopLanguage(page, props.getProperty(PropNames.MOST_FORKED_TODAY, Defaults.MOST_FORKED_TODAY)));
-            pr.setMostWatchedThisWeek(processTopLanguage(page, props.getProperty(PropNames.MOST_WATCHED_THIS_WEEK, Defaults.MOST_WATCHED_THIS_WEEK)));
-            pr.setMostForkedThisWeek(processTopLanguage(page, props.getProperty(PropNames.MOST_FORKED_THIS_WEEK, Defaults.MOST_FORKED_THIS_WEEK)));
-            pr.setMostWatchedThisMonth(processTopLanguage(page, props.getProperty(PropNames.MOST_WATCHED_THIS_MONTH, Defaults.MOST_WATCHED_THIS_MONTH)));
-            pr.setMostForkedThisMonth(processTopLanguage(page, props.getProperty(PropNames.MOST_FORKED_THIS_MONTH, Defaults.MOST_FORKED_THIS_MONTH)));
-            pr.setMostWatchedOverall(processTopLanguage(page, props.getProperty(PropNames.MOST_WATCHED_OVERALL, Defaults.MOST_WATCHED_OVERALL)));
-            pr.setMostForkedOverall(processTopLanguage(page, props.getProperty(PropNames.MOST_FORKED_OVERALL, Defaults.MOST_FORKED_OVERALL)));
-            pr.setMostWatchedProjects(getMostWatchedProjects(page, Integer.parseInt(props.getProperty(PropNames.MOST_WATCHED_DEPTH, Defaults.MOST_WATCHED_DEPTH)), pr));
-        } catch (IOException e) {
-            logger.error("IO exception fetching {}:", name, e);
-        }
-        return pr;
-    }
-    
-    private Collection<String> processTopLanguage(HtmlPage page, String h3Tag) {
-        ArrayList<String> topProjects = new ArrayList<String>();
-        logger.info("searching for: {}", h3Tag);
-        for (HtmlElement elem : page.getElementsByTagName("h3")) {
-            if (! elem.getTextContent().trim().equals(h3Tag)) continue;
-            // DomNode d = elem.getParentNode();
-            for (Object el : elem.getParentNode().getByXPath("ul/li/a[@class=\"repo\"]")) {
-                if (el instanceof HtmlAnchor) { 
-                    topProjects.add(((HtmlAnchor) el).getHrefAttribute());
-                } else {
-                    logger.warn("Warning: element is not an HtmlAnchor: {}", el);
-                }
-            }
-        }
-        return topProjects;
-    }
-    
-    private Collection<String> getMostWatchedProjects(HtmlPage page, int depth, ProjectRecord pr) {
-        ArrayList <String> topProjects = new ArrayList<String>();
-        int maxPage = 1;
-        for (Object el : page.getByXPath("//ul[@class=\"tabnav-tabs\"]/li/a")) {
-            if (el instanceof HtmlAnchor && ((HtmlAnchor) el).getTextContent().trim().equals(props.getProperty(PropNames.MOST_WATCHED, Defaults.MOST_WATCHED).trim())) {
-                HtmlAnchor a = (HtmlAnchor) el;
-                try {
-                    httpSleep();
-                    HtmlPage newPage = a.click();
-                    topProjects.addAll(getMostWatchedProjectsIterator(newPage, depth-1));
-                    for (Object pageLink : newPage.getByXPath("//div[@class=\"pagination\"]/a")) {
-                        if (pageLink instanceof HtmlAnchor) {
-                            try {
-                                int pageNum = Integer.parseInt(((HtmlAnchor) pageLink).getTextContent().trim());
-                                if (pageNum > maxPage) maxPage = pageNum;
-                            } catch (NumberFormatException e) {
-                                // do nothing...
-                            }
-                        }
-                    }
-
-                } catch (IOException e) {
-                    logger.error("IO Exception clicking link: {}", a, e);
-                }
-            }
-        }
-        return topProjects;
-    }
-
-    private Collection<String> getMostWatchedProjectsIterator(HtmlPage page, int depth) {
-        ArrayList <String> topProjects = new ArrayList<String>();
-        logger.info("depth: {}", depth);
-        
-        // unfortunately the unordered list we're looking for has multiple css
-        // classes, so this hack finds it anywhere in the string
-        for (Object el : page.getByXPath("//ul[contains(concat(' ',@class,' '),' repolist ')]/li/h3/a")) {
-            if (el instanceof HtmlAnchor) {
-                topProjects.add(((HtmlAnchor) el).getHrefAttribute());
-            } else {
-                logger.warn("Warning: element is not an HtmlAnchor: {}", el);
-            }
-        }
-        if (depth > 0) {
-            HtmlAnchor nextAnchor = null;
-            try {
-                nextAnchor = page.getFirstByXPath("//div[@class=\"pagination\"]/a[@rel=\"next\"]");
-                if (nextAnchor != null) { 
-                    httpSleep();
-                    HtmlPage nextPage = nextAnchor.click();
-                    topProjects.addAll(getMostWatchedProjectsIterator(nextPage, depth-1));
-                }
-            } catch (IOException e) {
-                logger.error("IO Exception clicking link: {}", nextAnchor, e);
-            }
-        }
-        return topProjects;
-    }
+//    private HashMap<String, HtmlAnchor> getLanguageLinks() {
+//        String baseUrl = props.getProperty(PropNames.BASE_URL, Defaults.BASE_URL);
+//        HashMap<String, HtmlAnchor> languageLinks = new HashMap<String, HtmlAnchor>();
+//        try {
+//            HtmlPage page = wc.getPage(baseUrl);
+//            
+//            HtmlElement el = page.getElementById("languages");
+//            el = el.getFirstByXPath("//div[@class=\"all_languages\"]/div/ul");
+//            for (HtmlElement anchor : el.getHtmlElementsByTagName("a")) {
+//                logger.trace(anchor.asText());
+//                logger.trace(anchor.getAttribute("href"));
+//                if (anchor instanceof HtmlAnchor) {
+//                    languageLinks.put(anchor.asText(), (HtmlAnchor) anchor);
+//                } else {
+//                    logger.warn("Found a non-HtmlAnchor element: {}", anchor);
+//                }
+//            }
+//        } catch (MalformedURLException e) {
+//            logger.error("invalid url: {}", baseUrl, e);
+//        } catch (IOException e) {
+//            logger.error("IO exception: {}", e);
+//        }
+//        return languageLinks;
+//    }
+//    
+//    private ProjectRecord fetchLanguage(String name, HtmlAnchor anchor) {
+//        ProjectRecord pr = new ProjectRecord(name);
+//        
+//        HtmlPage page = null;
+//        try {
+//            httpSleep();
+//            page = anchor.click();
+//            logger.trace("Page URL: {}", page.getUrl());
+//            HtmlElement el = page.getFirstByXPath("//div[@class=\"pagehead\"]/descendant::h1/em");
+//            String textContent = el.getTextContent();
+//            Matcher m1 = rankMatch.matcher(textContent.trim());
+//            if (m1.matches()) {
+//                if (m1.groupCount() > 0) {
+//                    int rank = 1;
+//                    if (m1.group(2) != null) {
+//                        rank = Integer.parseInt(m1.group(2));
+//                    }
+//                    pr.setRank(rank);
+//                    logger.info("language {}: rank: {}", name, rank);
+//                }
+//            }
+//            pr.setMostWatchedToday(processTopLanguage(page, props.getProperty(PropNames.MOST_WATCHED_TODAY, Defaults.MOST_WATCHED_TODAY)));
+//            pr.setMostForkedToday(processTopLanguage(page, props.getProperty(PropNames.MOST_FORKED_TODAY, Defaults.MOST_FORKED_TODAY)));
+//            pr.setMostWatchedThisWeek(processTopLanguage(page, props.getProperty(PropNames.MOST_WATCHED_THIS_WEEK, Defaults.MOST_WATCHED_THIS_WEEK)));
+//            pr.setMostForkedThisWeek(processTopLanguage(page, props.getProperty(PropNames.MOST_FORKED_THIS_WEEK, Defaults.MOST_FORKED_THIS_WEEK)));
+//            pr.setMostWatchedThisMonth(processTopLanguage(page, props.getProperty(PropNames.MOST_WATCHED_THIS_MONTH, Defaults.MOST_WATCHED_THIS_MONTH)));
+//            pr.setMostForkedThisMonth(processTopLanguage(page, props.getProperty(PropNames.MOST_FORKED_THIS_MONTH, Defaults.MOST_FORKED_THIS_MONTH)));
+//            pr.setMostWatchedOverall(processTopLanguage(page, props.getProperty(PropNames.MOST_WATCHED_OVERALL, Defaults.MOST_WATCHED_OVERALL)));
+//            pr.setMostForkedOverall(processTopLanguage(page, props.getProperty(PropNames.MOST_FORKED_OVERALL, Defaults.MOST_FORKED_OVERALL)));
+//            pr.setMostWatchedProjects(getMostWatchedProjects(page, Integer.parseInt(props.getProperty(PropNames.MOST_WATCHED_DEPTH, Defaults.MOST_WATCHED_DEPTH)), pr));
+//        } catch (IOException e) {
+//            logger.error("IO exception fetching {}:", name, e);
+//        }
+//        return pr;
+//    }
+//    
+//    private Collection<String> processTopLanguage(HtmlPage page, String h3Tag) {
+//        ArrayList<String> topProjects = new ArrayList<String>();
+//        logger.info("searching for: {}", h3Tag);
+//        for (HtmlElement elem : page.getElementsByTagName("h3")) {
+//            if (! elem.getTextContent().trim().equals(h3Tag)) continue;
+//            // DomNode d = elem.getParentNode();
+//            for (Object el : elem.getParentNode().getByXPath("ul/li/a[@class=\"repo\"]")) {
+//                if (el instanceof HtmlAnchor) { 
+//                    topProjects.add(((HtmlAnchor) el).getHrefAttribute());
+//                } else {
+//                    logger.warn("Warning: element is not an HtmlAnchor: {}", el);
+//                }
+//            }
+//        }
+//        return topProjects;
+//    }
+//    
+//    private Collection<String> getMostWatchedProjects(HtmlPage page, int depth, ProjectRecord pr) {
+//        ArrayList <String> topProjects = new ArrayList<String>();
+//        int maxPage = 1;
+//        for (Object el : page.getByXPath("//ul[@class=\"tabnav-tabs\"]/li/a")) {
+//            if (el instanceof HtmlAnchor && ((HtmlAnchor) el).getTextContent().trim().equals(props.getProperty(PropNames.MOST_WATCHED, Defaults.MOST_WATCHED).trim())) {
+//                HtmlAnchor a = (HtmlAnchor) el;
+//                try {
+//                    httpSleep();
+//                    HtmlPage newPage = a.click();
+//                    topProjects.addAll(getMostWatchedProjectsIterator(newPage, depth-1));
+//                    for (Object pageLink : newPage.getByXPath("//div[@class=\"pagination\"]/a")) {
+//                        if (pageLink instanceof HtmlAnchor) {
+//                            try {
+//                                int pageNum = Integer.parseInt(((HtmlAnchor) pageLink).getTextContent().trim());
+//                                if (pageNum > maxPage) maxPage = pageNum;
+//                            } catch (NumberFormatException e) {
+//                                // do nothing...
+//                            }
+//                        }
+//                    }
+//
+//                } catch (IOException e) {
+//                    logger.error("IO Exception clicking link: {}", a, e);
+//                }
+//            }
+//        }
+//        return topProjects;
+//    }
+//
+//    private Collection<String> getMostWatchedProjectsIterator(HtmlPage page, int depth) {
+//        ArrayList <String> topProjects = new ArrayList<String>();
+//        logger.info("depth: {}", depth);
+//        
+//        // unfortunately the unordered list we're looking for has multiple css
+//        // classes, so this hack finds it anywhere in the string
+//        for (Object el : page.getByXPath("//ul[contains(concat(' ',@class,' '),' repolist ')]/li/h3/a")) {
+//            if (el instanceof HtmlAnchor) {
+//                topProjects.add(((HtmlAnchor) el).getHrefAttribute());
+//            } else {
+//                logger.warn("Warning: element is not an HtmlAnchor: {}", el);
+//            }
+//        }
+//        if (depth > 0) {
+//            HtmlAnchor nextAnchor = null;
+//            try {
+//                nextAnchor = page.getFirstByXPath("//div[@class=\"pagination\"]/a[@rel=\"next\"]");
+//                if (nextAnchor != null) { 
+//                    httpSleep();
+//                    HtmlPage nextPage = nextAnchor.click();
+//                    topProjects.addAll(getMostWatchedProjectsIterator(nextPage, depth-1));
+//                }
+//            } catch (IOException e) {
+//                logger.error("IO Exception clicking link: {}", nextAnchor, e);
+//            }
+//        }
+//        return topProjects;
+//    }
 }
 
