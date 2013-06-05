@@ -38,7 +38,7 @@ public class Story implements Serializable {
         this.itemId = itemId;
     }
     
-    @Column(name="user_id")
+    @Column(name="user_id", nullable=false)
     public Integer getUserId() {
         return userId;
     }
@@ -62,7 +62,7 @@ public class Story implements Serializable {
         this.votes = votes;
     }
     
-    @Column(name="update_id")
+    @Column(name="update_id", nullable=false)
     public Integer getUpdateId() {
         return updateId;
     }
