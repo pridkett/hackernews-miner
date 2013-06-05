@@ -5,7 +5,12 @@
              version="2.0">
     <persistence-unit name="persistence-unit" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.ejb.HibernatePersistence</provider>
+        <class>net.wagstrom.research.hackernews.dbobjs.Item</class>
+        <class>net.wagstrom.research.hackernews.dbobjs.Karma</class>
+        <class>net.wagstrom.research.hackernews.dbobjs.PageContent</class>
+        <class>net.wagstrom.research.hackernews.dbobjs.Story</class>
         <class>net.wagstrom.research.hackernews.dbobjs.Update</class>
+        <class>net.wagstrom.research.hackernews.dbobjs.User</class>
         <properties>
             <property name="hibernate.show_sql" value="true" />
             <property name="hibernate.format_sql" value="true" />

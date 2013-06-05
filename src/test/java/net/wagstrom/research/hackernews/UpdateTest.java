@@ -25,8 +25,8 @@ public class UpdateTest extends TestBase {
         em.getTransaction().begin();
         em.persist(u1);
         em.getTransaction().commit();
-        logger.info("ID: {}", u1.getId());
-        logger.info("createDate: {}", u1.getCreateDate());
+        assertEquals((Integer)1, u1.getId());
+        assertNotNull(u1.getCreateDate());
     }
     
     @Test
