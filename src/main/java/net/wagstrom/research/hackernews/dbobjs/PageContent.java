@@ -26,7 +26,7 @@ public class PageContent {
     private Integer itemId;
     private String url;
     private String text;
-    private Boolean isHn;
+    private Boolean isHn = false;
     private Date createDate;
     private Integer updateId;
     
@@ -56,7 +56,7 @@ public class PageContent {
         this.url = url;
     }
     
-    @Column(name="test")
+    @Column(name="text")
     public String getText() {
         return text;
     }
@@ -64,7 +64,7 @@ public class PageContent {
         this.text = text;
     }
     
-    @Column(name="is_hn")
+    @Column(name="is_hn", nullable=false)
     public Boolean getIsHn() {
         return isHn;
     }
@@ -72,7 +72,7 @@ public class PageContent {
         this.isHn = isHn;
     }
     
-    @Column(name="create_date", updatable=false, columnDefinition="TIMESTAMPE DEFAULT CURRENT_TIMESTAMP")
+    @Column(name="create_date", updatable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     @Temporal(TemporalType.TIMESTAMP)
     public Date getCreateDate() {
         return createDate;
@@ -81,7 +81,7 @@ public class PageContent {
         this.createDate = createDate;
     }
     
-    @Column(name="update_id")
+    @Column(name="update_id", nullable=false)
     public Integer getUpdateId() {
         return updateId;
     }
