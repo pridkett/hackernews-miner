@@ -33,7 +33,7 @@ public class Karma implements Serializable {
         this.id = id;
     }
     
-    @Column(name="user_id")
+    @Column(name="user_id", nullable=false)
     public Integer getUserId() {
         return userId;
     }
@@ -41,7 +41,7 @@ public class Karma implements Serializable {
         this.userId = userId;
     }
     
-    @Column(name="update_id")
+    @Column(name="update_id", nullable=false)
     public Integer getUpdateId() {
         return updateId;
     }
@@ -49,7 +49,7 @@ public class Karma implements Serializable {
         this.updateId = updateId;
     }
     
-    @Column(name="karma")
+    @Column(name="karma", nullable=false)
     public Integer getKarma() {
         return karma;
     }
