@@ -6,6 +6,7 @@ import java.util.List;
 
 import net.wagstrom.research.hackernews.dbobjs.Item;
 import net.wagstrom.research.hackernews.dbobjs.Update;
+import net.wagstrom.research.hackernews.dbobjs.User;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -24,13 +25,17 @@ public class ItemTest extends TestBase {
     @SuppressWarnings("unchecked")
     public void test() {
         Update update = new Update();
+        User u = new User();
+        u.setName("testUser");
         
         em.getTransaction().begin();
         em.persist(update);
+        em.persist(u);
         em.getTransaction().commit();
         
         Item item = new Item();
         item.setUpdateId(update.getId());
+        item.setUserId(u.getId());
         
         em.getTransaction().begin();
         em.persist(item);

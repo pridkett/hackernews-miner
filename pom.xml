@@ -48,6 +48,7 @@
     <hibernateAnnotations.version>3.4.0.GA</hibernateAnnotations.version>
     <javaxPersistence.version>1.0</javaxPersistence.version>
     <h2.version>1.3.168</h2.version>
+    <jsoup.version>1.7.2</jsoup.version>
   </properties>
 
   <dependencies>
@@ -107,6 +108,11 @@
       <groupId>javax.persistence</groupId>
       <artifactId>persistence-api</artifactId>
       <version>${javaxPersistence.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>${jsoup.version}</version>
     </dependency>
   </dependencies>
 

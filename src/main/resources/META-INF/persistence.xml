@@ -6,6 +6,7 @@
     <persistence-unit name="persistence-unit" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.ejb.HibernatePersistence</provider>
         <class>net.wagstrom.research.hackernews.dbobjs.Item</class>
+        <class>net.wagstrom.research.hackernews.dbobjs.ItemUpdate</class>
         <class>net.wagstrom.research.hackernews.dbobjs.Karma</class>
         <class>net.wagstrom.research.hackernews.dbobjs.PageContent</class>
         <class>net.wagstrom.research.hackernews.dbobjs.Story</class>

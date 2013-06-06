@@ -1,6 +1,8 @@
 package net.wagstrom.research.hackernews.dbobjs;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 
 import javax.persistence.CascadeType;
@@ -14,6 +16,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 /**
  * An item represents a single entity in the hackernews
@@ -32,9 +35,18 @@ public class Item implements Serializable {
     private String url;
     private String text;
     private Boolean isHn = true;
+    private Boolean isComment = false;
     private Integer updateId;
+    private Integer userId;
+    private String user;
     private Date createDate;
+    private Date hnCreateDate;
+    private ArrayList<ItemUpdate> updates;
 
+    public Item() {
+        setUpdates(new ArrayList<ItemUpdate>());
+    }
+    
     @Id
     @GeneratedValue
     @Column(name="id")
@@ -97,5 +109,74 @@ public class Item implements Serializable {
     @PrePersist
     protected void onUpdate() {
         this.createDate = new Date();
+    }
+    
+    @Column(name="user_id", nullable=false)
+    public Integer getUserId() {
+        return userId;
+    }
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
+    
+    
+    /**
+     * simple container for the username -- used because we don't do full object
+     * joins with JPA in this model, so we need a way to store the username for
+     * later goodness
+     * 
+     * @return
+     */
+    @Transient
+    public String getUser() {
+        return user;
+    }
+    public void setUser(String user) {
+        this.user = user;
+    }
+    
+    public void setHnCreateDate(Date date) {
+        hnCreateDate = date;
+    }
+
+    @Transient
+    public void setHnCreateDate(int since, String units) {
+        Date d = new Date();
+        long diff = 0;
+        if (units.startsWith("hour")) {
+            diff = since * 3600 * 1000;
+        } else if (units.startsWith("minute")) {
+            diff = since * 60 * 1000;
+        } else if (units.startsWith("day")) {
+            diff = since * 86400 * 1000;
+        } else {
+            // TODO: shouldd throw an exception here or something....
+        }
+        hnCreateDate = new Date(d.getTime() - diff);
+    }
+    
+    @Column(name="hn_create_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    public Date getHnCreateDate() {
+        return this.hnCreateDate;
+    }
+    
+    @Column(name="is_comment")
+    public Boolean getIsComment() {
+        return isComment;
+    }
+    public void setIsComment(Boolean isComment) {
+        this.isComment = isComment;
+    }
+    
+    @Transient
+    public Collection<ItemUpdate> getUpdates() {
+        return updates;
+    }
+    public void setUpdates(ArrayList<ItemUpdate> updates) {
+        this.updates = updates;
+    }
+    public void addUpdate(ItemUpdate iu) {
+        this.updates.add(iu);
     }
 }
