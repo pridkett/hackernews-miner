@@ -6,6 +6,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
+
+import net.wagstrom.research.hackernews.dbobjs.Item;
+import net.wagstrom.research.hackernews.dbobjs.ItemUpdate;
+import net.wagstrom.research.hackernews.dbobjs.User;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -32,6 +37,15 @@ public class ParserSerializerTest extends TestBase {
             assertEquals(30, p.getItems().size());
             ParserSerializer ps = new ParserSerializer(p, em);
             ps.run();
+            
+            final List<User> ul = em.createQuery("Select u from User u", User.class).getResultList();
+            assertEquals(30, ul.size());
+            
+            final List<Item> il = em.createQuery("Select i from Item i", Item.class).getResultList();
+            assertEquals(30, il.size());
+            
+            final List<ItemUpdate> iul = em.createQuery("Select iu from ItemUpdate iu", ItemUpdate.class).getResultList();
+            assertEquals(30, iul.size());
             
         } catch (IOException e) {
             logger.error("IO Exception caught: ", e);
