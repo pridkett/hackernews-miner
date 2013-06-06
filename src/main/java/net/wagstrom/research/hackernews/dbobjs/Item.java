@@ -8,10 +8,12 @@ import java.util.Date;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -32,13 +34,16 @@ public class Item implements Serializable {
 
     private Integer id;
     private Integer itemId;
+    private Integer parentId;
+    private Item parent;
+    private Collection<Item> children;
     private String url;
     private String text;
     private Boolean isHn = true;
     private Boolean isComment = false;
-    private Integer updateId;
-    private Integer userId;
-    private String user;
+    private Update update;
+    private User user;
+    private String username;
     private Date createDate;
     private Date hnCreateDate;
     private ArrayList<ItemUpdate> updates;
@@ -89,12 +94,13 @@ public class Item implements Serializable {
         this.isHn = isHn;
     }
     
-    @Column(name="update_id", nullable=false)
-    public Integer getUpdateId() {
-        return updateId;
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name="update_id", nullable=false)
+    public Update getUpdate() {
+        return update;
     }
-    public void setUpdateId(Integer updateId) {
-        this.updateId = updateId;
+    public void setUpdate(Update update) {
+        this.update = update;
     }
     
     @Column(name="create_date", updatable=false, columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
@@ -111,12 +117,13 @@ public class Item implements Serializable {
         this.createDate = new Date();
     }
     
-    @Column(name="user_id", nullable=false)
-    public Integer getUserId() {
-        return userId;
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name="user_id", nullable=false)
+    public User getUser() {
+        return user;
     }
-    public void setUserId(Integer userId) {
-        this.userId = userId;
+    public void setUser(User user) {
+        this.user = user;
     }
     
     
@@ -128,12 +135,25 @@ public class Item implements Serializable {
      * @return
      */
     @Transient
-    public String getUser() {
-        return user;
+    public String getUsername() {
+        return username;
     }
-    public void setUser(String user) {
-        this.user = user;
+    public void setUsername(String username) {
+        this.username = username;
     }
+    
+    /**
+     * simple container for the parent id before we have the object for it
+     * @param date
+     */
+    @Transient
+    public Integer getParentId() {
+        return parentId;
+    }
+    public void setParentId(Integer parentId) {
+        this.parentId = parentId;
+    }
+    
     
     public void setHnCreateDate(Date date) {
         hnCreateDate = date;
@@ -178,5 +198,24 @@ public class Item implements Serializable {
     }
     public void addUpdate(ItemUpdate iu) {
         this.updates.add(iu);
+    }
+
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name="parent_id")
+    public Item getParent() {
+        return parent;
+    }
+
+    public void setParent(Item parent) {
+        this.parent = parent;
+    }
+
+    @OneToMany(mappedBy="parent")
+    public Collection<Item> getChildren() {
+        return children;
+    }
+
+    public void setChildren(Collection<Item> children) {
+        this.children = children;
     }
 }

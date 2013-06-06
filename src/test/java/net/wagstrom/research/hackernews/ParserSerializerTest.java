@@ -49,7 +49,6 @@ public class ParserSerializerTest extends TestBase {
             
         } catch (IOException e) {
             logger.error("IO Exception caught: ", e);
-            fail();
         }
     }
 }

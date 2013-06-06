@@ -10,6 +10,7 @@ import net.wagstrom.research.hackernews.dbobjs.ItemUpdate;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +25,75 @@ public class Parser {
     
     private enum ParseMode {
         FIRST, SECOND, SPACER, FINAL;
+    }
+    
+    public void runItem(String html, String baseuri) {
+        ArrayList<Integer> parents = new ArrayList<Integer>();
+        
+        String regex = "([^ ]+) ([0-9]+) (minutes?|hours?|days?) ago \\| link";
+        Pattern p = Pattern.compile(regex);
+
+        Document doc = Jsoup.parse(html, baseuri);
+        Element baseItem = doc.select("table table center a[id^=up_]").first();
+        Integer baseItemId = Integer.parseInt(baseItem.attr("id").split("_")[1]);
+        logger.debug("Parsing comments for: {}", baseItemId);
+        parents.add(baseItemId);
+
+        // condition 1 -- standard first page
+        Elements main = doc.select("table table").get(2).select("tr td table tr");
+        // condition 2 -- second page of comments
+        if (main.isEmpty()) {
+            main = doc.select("table table table tr");
+        }
+        logger.info("main: {}", main.html());
+        logger.info("main empty: {}", main.isEmpty());
+
+        for (Element tr : main) {
+            Item i = new Item();
+            
+            Element indentImg = tr.select("td img").first();
+            Integer indent = Integer.parseInt(indentImg.attr("width"))/40;
+            String user = tr.select("span[class=comhead] a").first().text();
+            String commentText = tr.select("span[class=comment] font").html();
+            logger.trace("------------------");
+            logger.trace("indent: {}", indent);
+            logger.trace("user: {}", user);
+            i.setUsername(user);
+            logger.trace("comment text: {}", commentText);
+            i.setText(commentText);
+            i.setParentId(parents.get(indent));
+            Matcher m = p.matcher(tr.select("span[class=comhead]").text());
+            if (m.find()) {
+                i.setHnCreateDate(Integer.parseInt(m.group(2)), m.group(3));
+            } else {
+                logger.warn("Unable to parse out create date: {}",
+                        tr.select("span[class=comhead]").text());
+            }
+            logger.trace("comhead: {}", tr.select("span[class=comhead]").text());
+            try {
+                logger.trace("href: {}", tr.select("span[class=comhead] a[href^=item]").html());
+
+                Integer hnId = Integer.parseInt(tr.select("span[class=comhead] a[href^=item]").first().attr("href").split("=")[1]);
+                logger.trace("hn_id: {}", hnId);
+                i.setItemId(hnId);
+                if (parents.size() < indent+2) {
+                    parents.add(hnId);
+                } else {
+                    parents.set(indent+1, hnId);
+                }
+            } catch (NullPointerException npe) {
+                logger.error("hn_id: NPE!");
+            }
+            logger.trace(tr.html());
+            items.add(i);
+        }
+        
+        Element nextUrlLink = doc.select("table table td[class=title] a[href^=/x?fn]").first();
+        if (nextUrlLink == null) {
+            setNextURL(null);
+        } else {
+            setNextURL(nextUrlLink.attr("abs:href"));
+        }
     }
     
     public void run(String html, String baseuri) {
@@ -41,8 +111,7 @@ public class Parser {
         // 6 - either text for # of comments (eg "28 comments") or null
         // 7 - number of comments or null if none
         // 8 - null or "discuss" if no comments
-        String regex = "([0-9]+) points by ([^ ]+) ([0-9]+) (minutes?|hours?) ago \\| ((([0-9]+) comments?)|(discuss))";
-        // String regex = "(\\d+) points";
+        String regex = "([0-9]+) points by ([^ ]+) ([0-9]+) (minutes?|hours?|days?) ago \\| ((([0-9]+) comments?)|(discuss))";
         Pattern p = Pattern.compile(regex);
         
         ParseMode pm = ParseMode.FIRST;
@@ -89,7 +158,7 @@ public class Parser {
                         
                         i.setHnCreateDate(since, sinceTime);
                         i.setItemId(hn_id);
-                        i.setUser(submitter);
+                        i.setUsername(submitter);
                         
                         ItemUpdate iu = new ItemUpdate();
                         iu.setNumComments(numComments);
@@ -112,9 +181,9 @@ public class Parser {
                 pm = ParseMode.FIRST;
             } else if (pm.equals(ParseMode.FINAL)){
                 Element nextLink = e.select("td[class=title] a").first();
-                String nextHref = nextLink.attr("href");
+                String nextHref = nextLink.attr("abs:href");
                 logger.trace("Next href: {}", nextHref);
-                this.nextURL = baseuri + "/" + nextURL;
+                setNextURL(nextHref);
             }
         }
     }
@@ -123,6 +192,10 @@ public class Parser {
         return nextURL;
     }
 
+    protected void setNextURL(String nextURL) {
+        this.nextURL = nextURL;
+    }
+    
     public ArrayList<Item> getItems() {
         return items;
     }

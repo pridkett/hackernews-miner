@@ -37,7 +37,7 @@ public class ParserSerializer {
         
         // process all of the usernames
         for (Item i : p.getItems()) {
-            usernames.add(i.getUser());
+            usernames.add(i.getUsername());
             itemids.add(i.getItemId());
         }
         
@@ -71,8 +71,8 @@ public class ParserSerializer {
         em.getTransaction().begin();
         for (Item i : p.getItems()) {
             if (itemids.contains(i.getItemId())) {
-                i.setUpdateId(u.getId());
-                i.setUserId(users.get(i.getUser()).getId());
+                i.setUpdate(u);
+                i.setUser(users.get(i.getUsername()));
                 em.persist(i);
                 items.put(i.getItemId(), i);
             }
