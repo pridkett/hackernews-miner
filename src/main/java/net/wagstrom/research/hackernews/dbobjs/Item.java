@@ -12,6 +12,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
@@ -70,7 +71,7 @@ public class Item implements Serializable {
         this.itemId = itemId;
     }
     
-    @Column(name="url")
+    @Column(name="url", length=2048)
     public String getUrl() {
         return url;
     }
@@ -78,6 +79,7 @@ public class Item implements Serializable {
         this.url = url;
     }
     
+    @Lob
     @Column(name="text")
     public String getText() {
         return text;
@@ -117,8 +119,11 @@ public class Item implements Serializable {
         this.createDate = new Date();
     }
     
+    // it would be nice to make this not null, but it needs to be nullable
+    // for the situation where somehow we don't have the parent item in the
+    // database yet.
     @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="user_id", nullable=false)
+    @JoinColumn(name="user_id", nullable=true)
     public User getUser() {
         return user;
     }

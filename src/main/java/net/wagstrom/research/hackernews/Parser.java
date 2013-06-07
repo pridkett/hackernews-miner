@@ -18,6 +18,7 @@ public class Parser {
     private static final Logger logger = LoggerFactory.getLogger(Parser.class);
     private ArrayList<Item> items;
     private String nextURL = null;
+    private Integer baseParent = null;
     
     public Parser() {
         items = new ArrayList<Item>();
@@ -34,9 +35,18 @@ public class Parser {
         Pattern p = Pattern.compile(regex);
 
         Document doc = Jsoup.parse(html, baseuri);
-        Element baseItem = doc.select("table table center a[id^=up_]").first();
-        Integer baseItemId = Integer.parseInt(baseItem.attr("id").split("_")[1]);
-        logger.debug("Parsing comments for: {}", baseItemId);
+        
+        /* in some cases we need to override the base item. Particularly this
+         * is needed when we're on the second or subsequent pages of comments 
+         */
+        Integer baseItemId;
+        if (baseParent != null) {
+            baseItemId = baseParent;
+        } else { 
+            Element baseItem = doc.select("table table center a[id^=up_]").first();
+            baseItemId = Integer.parseInt(baseItem.attr("id").split("_")[1]);
+        }
+        logger.warn("Parsing comments for: {}", baseItemId);
         parents.add(baseItemId);
 
         // condition 1 -- standard first page
@@ -45,8 +55,6 @@ public class Parser {
         if (main.isEmpty()) {
             main = doc.select("table table table tr");
         }
-        logger.info("main: {}", main.html());
-        logger.info("main empty: {}", main.isEmpty());
 
         for (Element tr : main) {
             Item i = new Item();
@@ -86,6 +94,12 @@ public class Parser {
             }
             logger.trace(tr.html());
             items.add(i);
+            
+            // we create ItemUpdates for the comments, but they're generally not
+            // not used. I'm not certain if this is a good long term strategy
+            // or not.
+            ItemUpdate iu = new ItemUpdate();
+            i.addUpdate(iu);
         }
         
         Element nextUrlLink = doc.select("table table td[class=title] a[href^=/x?fn]").first();
@@ -198,5 +212,13 @@ public class Parser {
     
     public ArrayList<Item> getItems() {
         return items;
+    }
+
+    public Integer getBaseParent() {
+        return baseParent;
+    }
+
+    public void setBaseParent(Integer baseParent) {
+        this.baseParent = baseParent;
     }
 }
